@@ -1,0 +1,16 @@
+# ローカル環境固有の設定
+.htaccess
+*.cgi
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
