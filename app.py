@@ -341,6 +341,40 @@ def manual_detail(manual_id):
     )
 
 
+@app.route('/manuals/<int:manual_id>/print')
+@login_required
+def manual_print(manual_id):
+    """Print view for manual"""
+    from datetime import datetime
+    
+    manual = Manual.find_by_id(manual_id)
+    
+    if not manual:
+        flash('手順書が見つかりません', 'error')
+        return redirect(url_for('manuals_list'))
+    
+    current_user = get_current_user()
+    
+    # Check permission
+    if manual['status'] == 'draft' and manual['author_id'] != current_user['id'] and not is_admin():
+        flash('この手順書を閲覧する権限がありません', 'error')
+        return redirect(url_for('manuals_list'))
+    
+    # Get steps
+    steps = ManualStep.get_by_manual(manual_id)
+    
+    # Get author
+    author = User.find_by_id(manual['author_id'])
+    
+    return render_template(
+        'manuals/print.html',
+        manual=manual,
+        steps=steps,
+        author=author,
+        now=datetime.now().strftime('%Y-%m-%d %H:%M')
+    )
+
+
 @app.route('/manuals/create', methods=['GET', 'POST'])
 @login_required
 def manual_create():

@@ -21,14 +21,15 @@
         </div>
     </div>
     
-    {% if manual.author_id == current_user.id or is_admin %}
     <div class="btn-group">
+        <a href="{{ url_for('manual_print', manual_id=manual.id) }}" class="btn btn-outline" target="_blank">📄 PDF出力</a>
+        {% if manual.author_id == current_user.id or is_admin %}
         <a href="{{ url_for('manual_edit', manual_id=manual.id) }}" class="btn btn-primary">編集</a>
         <form method="POST" action="{{ url_for('manual_delete', manual_id=manual.id) }}" style="display: inline;" onsubmit="return confirmDelete()">
             <button type="submit" class="btn btn-danger">削除</button>
         </form>
+        {% endif %}
     </div>
-    {% endif %}
 </div>
 
 <div class="card mb-3">

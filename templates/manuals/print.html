@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ manual.title }} - 印刷用</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}">
+    <style>
+        body {
+            background: white;
+            font-family: 'MS Gothic', 'MS Mincho', 'Hiragino Kaku Gothic Pro', sans-serif;
+        }
+        .print-only {
+            display: block;
+        }
+        .no-print {
+            display: none;
+        }
+        @media screen {
+            .print-controls {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 1000;
+                background: white;
+                padding: 10px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                border-radius: 4px;
+            }
+        }
+        @media print {
+            .print-controls {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 印刷コントロール -->
+    <div class="print-controls no-print">
+        <button onclick="window.print()" class="btn btn-primary">印刷 / PDF保存</button>
+        <button onclick="window.close()" class="btn btn-outline">閉じる</button>
+    </div>
+
+    <div class="print-preview">
+        <!-- ヘッダー -->
+        <div class="print-header">
+            <div class="print-title">{{ manual.title }}</div>
+            <div class="print-info">
+                <p>作成者: {{ author.name }} | 作成日: {{ manual.created_at[:10] }} | 最終更新: {{ manual.updated_at[:10] }}</p>
+            </div>
+        </div>
+
+        <!-- 概要 -->
+        <div class="card">
+            <h2 class="card-header">概要</h2>
+            <div style="padding: 5mm;">
+                <p>{{ manual.description or '説明なし' }}</p>
+                <div style="margin-top: 5mm;">
+                    {% if manual.tags %}
+                    <strong>タグ:</strong>
+                    {% for tag in manual.tags.split(',') %}
+                    <span class="badge badge-primary">{{ tag.strip() }}</span>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+                <div style="margin-top: 3mm;">
+                    <strong>ステータス:</strong>
+                    {% if manual.status == 'published' %}
+                    <span class="badge badge-success">公開</span>
+                    {% else %}
+                    <span class="badge badge-secondary">下書き</span>
+                    {% endif %}
+                </div>
+                <div style="margin-top: 3mm;">
+                    <strong>公開範囲:</strong>
+                    {% if manual.visibility == 'public' %}全体公開
+                    {% elif manual.visibility == 'department' %}部署内
+                    {% else %}非公開{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 手順 -->
+        {% if steps %}
+        <div class="card">
+            <h2 class="card-header">手順</h2>
+            <div style="padding: 5mm;">
+                {% for step in steps %}
+                <div class="step-item">
+                    <div style="display: flex; align-items: center; margin-bottom: 3mm;">
+                        <span class="step-number">{{ step.step_number }}</span>
+                        <h3 style="margin: 0;">{{ step.title }}</h3>
+                    </div>
+                    <div style="white-space: pre-wrap; margin-left: 11mm;">{{ step.content }}</div>
+                    
+                    {% if step.notes %}
+                    <div style="margin-top: 3mm; margin-left: 11mm; padding: 3mm; background-color: #f9f9f9; border-left: 3px solid #000; border-radius: 2px;">
+                        <strong>📝 備考:</strong>
+                        <div style="white-space: pre-wrap; margin-top: 2mm;">{{ step.notes }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if step.image_path %}
+                    <div style="margin-top: 3mm; margin-left: 11mm;">
+                        <img src="{{ url_for('uploaded_file', filename=step.image_path) }}" alt="{{ step.title }}" class="step-image">
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- フッター -->
+        <div class="print-footer no-print">
+            <p>Manual Factory で作成 | {{ now }}</p>
+        </div>
+    </div>
+
+    <script>
+        // ページ読み込み時の処理
+        window.addEventListener('load', function() {
+            // 印刷ダイアログを自動表示する場合（オプション）
+            // window.print();
+        });
+    </script>
+</body>
+</html>
