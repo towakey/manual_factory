@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}プロフィール - Manual Factory{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <h1 class="mb-3">プロフィール</h1>
+    
+    <div class="card">
+        <form method="POST">
+            <div class="form-group">
+                <label class="form-label" for="name">名前</label>
+                <input type="text" id="name" name="name" class="form-control" value="{{ user.name }}" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="email">メールアドレス</label>
+                <input type="email" id="email" class="form-control" value="{{ user.email }}" disabled>
+                <small style="color: var(--text-secondary);">メールアドレスは変更できません</small>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="department">所属</label>
+                <input type="text" id="department" name="department" class="form-control" value="{{ user.department or '' }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">権限</label>
+                <input type="text" class="form-control" value="{% if user.role == 'admin' %}管理者{% else %}一般ユーザー{% endif %}" disabled>
+            </div>
+            <div class="btn-group">
+                <button type="submit" class="btn btn-primary">更新</button>
+                <a href="{{ url_for('change_password') }}" class="btn btn-outline">パスワード変更</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}ユーザー管理 - Manual Factory{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-3">
+    <h1>ユーザー管理</h1>
+    <a href="{{ url_for('admin_create_user') }}" class="btn btn-primary">新規ユーザー作成</a>
+</div>
+
+{% if users %}
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>名前</th>
+                <th>メールアドレス</th>
+                <th>所属</th>
+                <th>権限</th>
+                <th>状態</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.name }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.department or '-' }}</td>
+                <td>
+                    {% if user.role == 'admin' %}
+                    <span class="badge badge-warning">管理者</span>
+                    {% else %}
+                    <span class="badge badge-secondary">一般</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if user.is_active %}
+                    <span class="badge badge-success">有効</span>
+                    {% else %}
+                    <span class="badge badge-secondary">無効</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="btn-group">
+                        <a href="{{ url_for('admin_edit_user', user_id=user.id) }}" class="btn btn-sm btn-outline">編集</a>
+                        {% if user.id != current_user.id %}
+                        <form method="POST" action="{{ url_for('admin_delete_user', user_id=user.id) }}" style="display: inline;" onsubmit="return confirmDelete('このユーザーを削除しますか?')">
+                            <button type="submit" class="btn btn-sm btn-danger">削除</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card text-center">
+    <p>ユーザーが登録されていません</p>
+</div>
+{% endif %}
+
+{% endblock %}

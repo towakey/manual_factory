@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}{{ manual.title }} - Manual Factory{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-3">
+    <div>
+        <h1>{{ manual.title }}</h1>
+        <div class="flex items-center gap-2 mt-2">
+            {% if manual.status == 'published' %}
+            <span class="badge badge-success">公開</span>
+            {% else %}
+            <span class="badge badge-secondary">下書き</span>
+            {% endif %}
+            
+            {% if manual.tags %}
+            {% for tag in manual.tags.split(',') %}
+            <span class="badge badge-primary">{{ tag.strip() }}</span>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if manual.author_id == current_user.id or is_admin %}
+    <div class="btn-group">
+        <a href="{{ url_for('manual_edit', manual_id=manual.id) }}" class="btn btn-primary">編集</a>
+        <form method="POST" action="{{ url_for('manual_delete', manual_id=manual.id) }}" style="display: inline;" onsubmit="return confirmDelete()">
+            <button type="submit" class="btn btn-danger">削除</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card mb-3">
+    <h2 class="card-header">概要</h2>
+    <p>{{ manual.description or '説明なし' }}</p>
+    <div class="mt-2" style="color: var(--text-secondary); font-size: 0.875rem;">
+        <p>作成者: {{ author.name }}</p>
+        <p>作成日: {{ manual.created_at }}</p>
+        <p>最終更新: {{ manual.updated_at }}</p>
+        <p>閲覧数: {{ access_count }}</p>
+    </div>
+</div>
+
+{% if steps %}
+<div class="card mb-3">
+    <h2 class="card-header">手順</h2>
+    {% for step in steps %}
+    <div class="step-item">
+        <div class="flex items-center mb-2">
+            <span class="step-number">{{ step.step_number }}</span>
+            <h3 style="margin: 0;">{{ step.title }}</h3>
+        </div>
+        <div style="white-space: pre-wrap;">{{ step.content }}</div>
+        {% if step.image_path %}
+        <img src="{{ url_for('uploaded_file', filename=step.image_path) }}" alt="{{ step.title }}" class="step-image">
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card text-center">
+    <p>手順が登録されていません</p>
+</div>
+{% endif %}
+
+{% if history %}
+<div class="card">
+    <h2 class="card-header">更新履歴</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>日時</th>
+                <th>ユーザー</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for h in history %}
+            <tr>
+                <td>{{ h.created_at }}</td>
+                <td>{{ h.user_name }}</td>
+                <td>{{ h.action }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% endblock %}

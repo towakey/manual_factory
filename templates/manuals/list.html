@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}手順書一覧 - Manual Factory{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-3">
+    <h1>手順書一覧</h1>
+    <a href="{{ url_for('manual_create') }}" class="btn btn-primary">新規作成</a>
+</div>
+
+<div class="card mb-3">
+    <form method="GET" id="search-form">
+        <div class="grid grid-cols-2 gap-2 mb-2">
+            <div class="form-group">
+                <label class="form-label">キーワード検索</label>
+                <input type="text" name="keyword" id="search-input" class="form-control" value="{{ keyword }}" placeholder="タイトル、説明で検索">
+            </div>
+            <div class="form-group">
+                <label class="form-label">タグ</label>
+                <input type="text" name="tags" class="form-control" value="{{ tags }}" placeholder="タグで検索">
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+            <div class="form-group">
+                <label class="form-label">ステータス</label>
+                <select name="status" class="form-control form-select">
+                    <option value="">すべて</option>
+                    <option value="draft" {% if status == 'draft' %}selected{% endif %}>下書き</option>
+                    <option value="published" {% if status == 'published' %}selected{% endif %}>公開</option>
+                </select>
+            </div>
+            {% if is_admin %}
+            <div class="form-group">
+                <label class="form-label">作成者</label>
+                <select name="author_id" class="form-control form-select">
+                    <option value="">すべて</option>
+                    {% for user in users %}
+                    <option value="{{ user.id }}" {% if author_id == user.id|string %}selected{% endif %}>{{ user.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">検索</button>
+        <a href="{{ url_for('manuals_list') }}" class="btn btn-outline">リセット</a>
+    </form>
+</div>
+
+{% if manuals %}
+<div class="grid grid-cols-1 gap-2">
+    {% for manual in manuals %}
+    <div class="card">
+        <div class="flex justify-between items-center">
+            <div style="flex: 1;">
+                <h3>
+                    <a href="{{ url_for('manual_detail', manual_id=manual.id) }}" style="color: var(--primary-color); text-decoration: none;">
+                        {{ manual.title }}
+                    </a>
+                </h3>
+                <p style="color: var(--text-secondary); margin: 0.5rem 0;">
+                    {{ manual.description[:100] }}{% if manual.description|length > 100 %}...{% endif %}
+                </p>
+                <div class="flex items-center gap-2 mt-2">
+                    {% if manual.status == 'published' %}
+                    <span class="badge badge-success">公開</span>
+                    {% else %}
+                    <span class="badge badge-secondary">下書き</span>
+                    {% endif %}
+                    
+                    {% if manual.tags %}
+                    {% for tag in manual.tags.split(',') %}
+                    <span class="badge badge-primary">{{ tag.strip() }}</span>
+                    {% endfor %}
+                    {% endif %}
+                    
+                    <span style="color: var(--text-secondary); font-size: 0.875rem;">
+                        作成者: {{ manual.author_name or 'Unknown' }}
+                    </span>
+                </div>
+            </div>
+            <div class="btn-group">
+                {% if manual.author_id == current_user.id or is_admin %}
+                <a href="{{ url_for('manual_edit', manual_id=manual.id) }}" class="btn btn-sm btn-outline">編集</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<div class="pagination">
+    {% if page > 1 %}
+    <a href="?page={{ page - 1 }}&keyword={{ keyword }}&tags={{ tags }}&status={{ status }}&author_id={{ author_id }}">前へ</a>
+    {% endif %}
+    
+    {% for p in range(1, total_pages + 1) %}
+        {% if p == page %}
+        <span class="active">{{ p }}</span>
+        {% elif p <= 3 or p > total_pages - 3 or (p >= page - 1 and p <= page + 1) %}
+        <a href="?page={{ p }}&keyword={{ keyword }}&tags={{ tags }}&status={{ status }}&author_id={{ author_id }}">{{ p }}</a>
+        {% elif p == 4 or p == total_pages - 3 %}
+        <span>...</span>
+        {% endif %}
+    {% endfor %}
+    
+    {% if page < total_pages %}
+    <a href="?page={{ page + 1 }}&keyword={{ keyword }}&tags={{ tags }}&status={{ status }}&author_id={{ author_id }}">次へ</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="card text-center">
+    <p>手順書が見つかりませんでした</p>
+    <a href="{{ url_for('manual_create') }}" class="btn btn-primary mt-2">最初の手順書を作成</a>
+</div>
+{% endif %}
+
+{% endblock %}

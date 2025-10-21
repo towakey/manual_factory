@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}{% if manual %}手順書編集{% else %}手順書作成{% endif %} - Manual Factory{% endblock %}
+
+{% block content %}
+<h1 class="mb-3">{% if manual %}手順書編集{% else %}新規手順書作成{% endif %}</h1>
+
+<form method="POST" enctype="multipart/form-data" onsubmit="return validateManualForm()">
+    <div class="card mb-3">
+        <h2 class="card-header">基本情報</h2>
+        
+        <div class="form-group">
+            <label class="form-label" for="title">タイトル <span style="color: var(--error-color);">*</span></label>
+            <input type="text" id="title" name="title" class="form-control" value="{{ manual.title if manual else '' }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" for="description">説明</label>
+            <textarea id="description" name="description" class="form-control" rows="4">{{ manual.description if manual else '' }}</textarea>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-2">
+            <div class="form-group">
+                <label class="form-label" for="tags">タグ</label>
+                <input type="text" id="tags" name="tags" class="form-control" value="{{ manual.tags if manual else '' }}" placeholder="カンマ区切りで入力">
+                <small style="color: var(--text-secondary);">例: 業務手順, マニュアル, 初心者向け</small>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="visibility">公開範囲</label>
+                <select id="visibility" name="visibility" class="form-control form-select">
+                    <option value="public" {% if manual and manual.visibility == 'public' %}selected{% endif %}>全体公開</option>
+                    <option value="department" {% if manual and manual.visibility == 'department' %}selected{% endif %}>部署内</option>
+                    <option value="private" {% if manual and manual.visibility == 'private' %}selected{% endif %}>非公開</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" for="status">ステータス</label>
+            <select id="status" name="status" class="form-control form-select">
+                <option value="draft" {% if manual and manual.status == 'draft' %}selected{% endif %}>下書き</option>
+                <option value="published" {% if manual and manual.status == 'published' %}selected{% endif %}>公開</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="card mb-3">
+        <div class="flex justify-between items-center mb-2">
+            <h2 style="margin: 0;">手順</h2>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addStep()">+ ステップ追加</button>
+        </div>
+        
+        <input type="hidden" id="step_count" name="step_count" value="{{ steps|length if steps else 0 }}">
+        
+        <div id="steps-container">
+            {% if steps %}
+                {% for step in steps %}
+                <div class="step-item" id="step-{{ loop.index }}">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3>ステップ {{ loop.index }}</h3>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeStep({{ loop.index }})">削除</button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">タイトル</label>
+                        <input type="text" name="step_title_{{ loop.index }}" class="form-control" value="{{ step.title }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">内容</label>
+                        <textarea name="step_content_{{ loop.index }}" class="form-control" rows="4" required>{{ step.content }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">画像</label>
+                        {% if step.image_path %}
+                        <div class="mb-1">
+                            <img src="{{ url_for('uploaded_file', filename=step.image_path) }}" alt="現在の画像" style="max-width: 200px; border-radius: 0.375rem;">
+                            <input type="hidden" name="existing_image_{{ loop.index }}" value="{{ step.image_path }}">
+                            <p style="font-size: 0.875rem; color: var(--text-secondary);">新しい画像をアップロードすると置き換えられます</p>
+                        </div>
+                        {% endif %}
+                        <input type="file" name="step_image_{{ loop.index }}" class="form-control" accept="image/*">
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="step-item" id="step-1">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3>ステップ 1</h3>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeStep(1)">削除</button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">タイトル</label>
+                        <input type="text" name="step_title_1" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">内容</label>
+                        <textarea name="step_content_1" class="form-control" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">画像</label>
+                        <input type="file" name="step_image_1" class="form-control" accept="image/*">
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="btn-group">
+        <button type="submit" class="btn btn-primary">{% if manual %}更新{% else %}作成{% endif %}</button>
+        <a href="{% if manual %}{{ url_for('manual_detail', manual_id=manual.id) }}{% else %}{{ url_for('manuals_list') }}{% endif %}" class="btn btn-outline">キャンセル</a>
+    </div>
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize step counter based on existing steps
+{% if steps %}
+stepCounter = {{ steps|length }};
+{% else %}
+stepCounter = 1;
+{% endif %}
+</script>
+{% endblock %}
