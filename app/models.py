@@ -216,20 +216,20 @@ class ManualStep:
     """Manual step model"""
     
     @staticmethod
-    def create(manual_id, step_number, title, content, image_path=None):
+    def create(manual_id, step_number, title, content, notes=None, image_path=None):
         """Create a new step"""
         query = """
-            INSERT INTO manual_steps (manual_id, step_number, title, content, image_path)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO manual_steps (manual_id, step_number, title, content, notes, image_path)
+            VALUES (?, ?, ?, ?, ?, ?)
         """
-        return execute_query(query, (manual_id, step_number, title, content, image_path))
+        return execute_query(query, (manual_id, step_number, title, content, notes, image_path))
     
     @staticmethod
     def create_many(steps_data):
         """Create multiple steps at once"""
         query = """
-            INSERT INTO manual_steps (manual_id, step_number, title, content, image_path)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO manual_steps (manual_id, step_number, title, content, notes, image_path)
+            VALUES (?, ?, ?, ?, ?, ?)
         """
         return execute_many(query, steps_data)
     
@@ -242,7 +242,7 @@ class ManualStep:
     @staticmethod
     def update(step_id, **kwargs):
         """Update step"""
-        allowed_fields = ['step_number', 'title', 'content', 'image_path']
+        allowed_fields = ['step_number', 'title', 'content', 'notes', 'image_path']
         updates = []
         params = []
         

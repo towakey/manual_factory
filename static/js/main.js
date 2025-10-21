@@ -39,6 +39,10 @@ function addStep() {
                 <textarea name="step_content_${stepCounter}" class="form-control" rows="4" required></textarea>
             </div>
             <div class="form-group">
+                <label class="form-label">備考</label>
+                <textarea name="step_notes_${stepCounter}" class="form-control" rows="2" placeholder="補足情報や注意事項など（任意）"></textarea>
+            </div>
+            <div class="form-group">
                 <label class="form-label">画像</label>
                 <input type="file" name="step_image_${stepCounter}" class="form-control" accept="image/*">
             </div>

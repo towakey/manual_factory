@@ -70,6 +70,10 @@
                         <textarea name="step_content_{{ loop.index }}" class="form-control" rows="4" required>{{ step.content }}</textarea>
                     </div>
                     <div class="form-group">
+                        <label class="form-label">備考</label>
+                        <textarea name="step_notes_{{ loop.index }}" class="form-control" rows="2" placeholder="補足情報や注意事項など（任意）">{{ step.notes or '' }}</textarea>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">画像</label>
                         {% if step.image_path %}
                         <div class="mb-1">
@@ -95,6 +99,10 @@
                     <div class="form-group">
                         <label class="form-label">内容</label>
                         <textarea name="step_content_1" class="form-control" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">備考</label>
+                        <textarea name="step_notes_1" class="form-control" rows="2" placeholder="補足情報や注意事項など（任意）"></textarea>
                     </div>
                     <div class="form-group">
                         <label class="form-label">画像</label>

@@ -52,6 +52,12 @@
             <h3 style="margin: 0;">{{ step.title }}</h3>
         </div>
         <div style="white-space: pre-wrap;">{{ step.content }}</div>
+        {% if step.notes %}
+        <div style="margin-top: 1rem; padding: 0.75rem; background-color: var(--background); border-left: 3px solid var(--primary-color); border-radius: 0.375rem;">
+            <strong style="color: var(--primary-color);">📝 備考:</strong>
+            <div style="white-space: pre-wrap; margin-top: 0.5rem;">{{ step.notes }}</div>
+        </div>
+        {% endif %}
         {% if step.image_path %}
         <img src="{{ url_for('uploaded_file', filename=step.image_path) }}" alt="{{ step.title }}" class="step-image">
         {% endif %}

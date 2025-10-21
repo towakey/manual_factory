@@ -369,6 +369,7 @@ def manual_create():
         for i in range(1, step_count + 1):
             step_title = request.form.get(f'step_title_{i}')
             step_content = request.form.get(f'step_content_{i}')
+            step_notes = request.form.get(f'step_notes_{i}', '')
             
             if not step_title or not step_content:
                 continue
@@ -381,8 +382,9 @@ def manual_create():
             
             # Sanitize content
             step_content = sanitize_html(step_content)
+            step_notes = sanitize_html(step_notes) if step_notes else None
             
-            ManualStep.create(manual_id, i, step_title, step_content, image_path)
+            ManualStep.create(manual_id, i, step_title, step_content, step_notes, image_path)
         
         # Create history
         ManualHistory.create(manual_id, current_user['id'], 'created')
@@ -437,6 +439,7 @@ def manual_edit(manual_id):
         for i in range(1, step_count + 1):
             step_title = request.form.get(f'step_title_{i}')
             step_content = request.form.get(f'step_content_{i}')
+            step_notes = request.form.get(f'step_notes_{i}', '')
             
             if not step_title or not step_content:
                 continue
@@ -454,8 +457,9 @@ def manual_edit(manual_id):
             
             # Sanitize content
             step_content = sanitize_html(step_content)
+            step_notes = sanitize_html(step_notes) if step_notes else None
             
-            ManualStep.create(manual_id, i, step_title, step_content, image_path)
+            ManualStep.create(manual_id, i, step_title, step_content, step_notes, image_path)
         
         # Create history
         ManualHistory.create(manual_id, current_user['id'], 'updated')
