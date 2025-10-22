@@ -9,7 +9,7 @@
 
 ## システム構成
 - **アーキテクチャ**  
-  Pythonを使用。
+  最低バージョンはPython3.7を使用。
   フロントエンドはHTML、CSS、JavaScriptを使用。
   バックエンドはPythonを使用。
   データベースはSQLiteを使用。

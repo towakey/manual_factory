@@ -1,0 +1,30 @@
+# Manual Factory CGI Application
+# Python 3.7+ standard library only
+# このファイルを .htaccess にリネームして使用してください
+
+# Enable CGI execution
+Options +ExecCGI
+AddHandler cgi-script .py .cgi
+
+# Default document
+DirectoryIndex app_cgi.py index.cgi
+
+# Rewrite rules (optional)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /manual_factory/
+    
+    # If not a file or directory, route to app_cgi.py
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ app_cgi.py [L,QSA]
+</IfModule>
+
+# Security
+<FilesMatch "\.(db|sql|json)$">
+    Require all denied
+</FilesMatch>
+
+<DirectoryMatch "^.*/data/.*">
+    Require all denied
+</DirectoryMatch>

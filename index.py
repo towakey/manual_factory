@@ -1,10 +1,17 @@
+#!python
 # -*- coding: utf-8 -*-
 """
-Manual Factory - Index Page
-このファイルは環境非依存です。
-ローカルで実行する場合は index.cgi 経由でアクセスしてください。
+Manual Factory - CGI Entry Point
+IIS settings modification not required
 """
-print("Content-Type: text/html; charset=utf-8\n")
-print("<html><body>")
-print("<h1>Test</h1>")
-print("</body></html>")
+
+import sys
+import os
+
+# Add current directory to path
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, BASE_DIR)
+
+# Import and run CGI application
+from app_cgi import app
+app.run()
