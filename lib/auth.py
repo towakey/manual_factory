@@ -38,7 +38,7 @@ def login_required(func):
     def wrapper(request, response, session, **kwargs):
         user_id = session.get('user_id')
         if not user_id:
-            response.redirect('/?action=login')
+            response.redirect('/')
             return response
         return func(request, response, session, **kwargs)
     return wrapper
@@ -51,7 +51,7 @@ def admin_required(func):
         is_admin = session.get('is_admin', False)
         
         if not user_id:
-            response.redirect('/?action=login')
+            response.redirect('/')
             return response
         
         if not is_admin:

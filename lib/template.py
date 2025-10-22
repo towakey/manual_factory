@@ -62,14 +62,16 @@ class Template:
     
     def _process_for_loops(self, content, context):
         """Process {% for item in items %}...{% endfor %}"""
-        pattern = r'{%\s*for\s+(\w+)\s+in\s+(\w+)\s*%}(.*?){%\s*endfor\s*%}'
+        # Updated pattern to support complex expressions like range()
+        pattern = r'{%\s*for\s+(\w+)\s+in\s+(.+?)\s*%}(.*?){%\s*endfor\s*%}'
         
         def replace_loop(match):
             item_name = match.group(1)
-            items_name = match.group(2)
+            items_expr = match.group(2).strip()
             loop_content = match.group(3)
             
-            items = context.get(items_name, [])
+            # Evaluate the expression to get the items
+            items = self._get_value(items_expr, context)
             if not items:
                 return ''
             
@@ -147,12 +149,36 @@ class Template:
         except ValueError:
             pass
         
-        # Function call: range(1, 10)
+        # Function call: range(1, 10) or range(1, total_pages + 1)
         if '(' in expr and expr.endswith(')'):
             func_name = expr[:expr.index('(')]
             if func_name == 'range':
                 args_str = expr[expr.index('(')+1:-1]
-                args = [int(x.strip()) for x in args_str.split(',')]
+                args = []
+                for arg in args_str.split(','):
+                    arg = arg.strip()
+                    # Try to evaluate as expression
+                    try:
+                        # Simple math expression support
+                        if '+' in arg:
+                            parts = arg.split('+')
+                            val = sum(int(self._get_value(p.strip(), context) or 0) for p in parts)
+                            args.append(val)
+                        elif '-' in arg:
+                            parts = arg.split('-')
+                            val = int(self._get_value(parts[0].strip(), context) or 0)
+                            for p in parts[1:]:
+                                val -= int(self._get_value(p.strip(), context) or 0)
+                            args.append(val)
+                        else:
+                            # Try as variable or number
+                            val = self._get_value(arg, context)
+                            args.append(int(val) if val is not None else 0)
+                    except:
+                        try:
+                            args.append(int(arg))
+                        except:
+                            args.append(0)
                 return list(range(*args))
         
         # Variable with dot notation: user.name

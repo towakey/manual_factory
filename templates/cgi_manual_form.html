@@ -30,8 +30,8 @@
         <h1>Manual Factory</h1>
         <div>
             <span>{{ user_name }}さん</span>
-            <a href="/?page=manuals">一覧</a>
-            <a href="/?logout=1">ログアウト</a>
+            <a href="/manuals">一覧</a>
+            <a href="/logout">ログアウト</a>
         </div>
     </div>
     
@@ -42,7 +42,12 @@
             <div class="error">{{ error }}</div>
             {% endif %}
             
-            <form method="POST" action="/?page=create" enctype="multipart/form-data">
+            {% if manual %}
+            <form method="POST" action="/manual/{{ manual.id }}/edit" enctype="multipart/form-data">
+            {% endif %}
+            {% if not manual %}
+            <form method="POST" action="/manual/create" enctype="multipart/form-data">
+            {% endif %}
                 <div class="form-group">
                     <label>タイトル *</label>
                     <input type="text" name="title" required>
@@ -106,7 +111,7 @@
                 
                 <div style="margin-top: 20px;">
                     <button type="submit" class="btn btn-success">作成</button>
-                    <a href="/?page=manuals" class="btn btn-secondary">キャンセル</a>
+                    <a href="/manuals" class="btn btn-secondary">キャンセル</a>
                 </div>
             </form>
         </div>

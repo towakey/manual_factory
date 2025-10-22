@@ -30,15 +30,15 @@
         <h1>Manual Factory - ユーザー管理</h1>
         <div>
             <span>{{ user_name }}さん（管理者）</span>
-            <a href="/?page=manuals">手順書一覧</a>
-            <a href="/?logout=1">ログアウト</a>
+            <a href="/manuals">手順書一覧</a>
+            <a href="/logout">ログアウト</a>
         </div>
     </div>
     
     <div class="container">
         <div class="card">
             <h2>新規ユーザー作成</h2>
-            <form method="POST" action="/?page=user_create">
+            <form method="POST" action="/user/create">
                 <div class="form-group">
                     <label>名前</label>
                     <input type="text" name="name" required>

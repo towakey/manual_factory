@@ -38,17 +38,16 @@
         <div>
             <span>{{ user_name }}さん</span>
             {% if is_admin %}
-            <a href="/?page=users">ユーザー管理</a>
+            <a href="/users">ユーザー管理</a>
             {% endif %}
-            <a href="/?logout=1">ログアウト</a>
+            <a href="/logout">ログアウト</a>
         </div>
     </div>
     
     <div class="container">
         <div class="actions">
-            <a href="/?page=create" class="btn">新規作成</a>
-            <form method="GET" class="search-form">
-                <input type="hidden" name="page" value="manuals">
+            <a href="/manual/create" class="btn">新規作成</a>
+            <form method="GET" action="/manuals" class="search-form">
                 <input type="text" name="keyword" placeholder="キーワード検索" value="{{ keyword }}">
                 <input type="text" name="tags" placeholder="タグ" value="{{ tags }}">
                 <button type="submit" class="btn">検索</button>
@@ -57,11 +56,10 @@
         
         <div class="manual-list">
             <h2>手順書一覧</h2>
-            {% if manuals %}
             {% for manual in manuals %}
             <div class="manual-item">
                 <h3>
-                    <a href="/?page=manual&id={{ manual.id }}">{{ manual.title }}</a>
+                    <a href="/manual/{{ manual.id }}">{{ manual.title }}</a>
                 </h3>
                 <div class="meta">
                     {% if manual.status == 'published' %}
@@ -74,8 +72,6 @@
                 </div>
             </div>
             {% endfor %}
-            {% endif %}
-            
             {% if not manuals %}
             <p>手順書がありません</p>
             {% endif %}
@@ -88,7 +84,7 @@
             <span class="current">{{ i }}</span>
             {% endif %}
             {% if i != page %}
-            <a href="/?page=manuals&page_num={{ i }}&keyword={{ keyword }}&tags={{ tags }}">{{ i }}</a>
+            <a href="/manuals?page={{ i }}&keyword={{ keyword }}&tags={{ tags }}">{{ i }}</a>
             {% endif %}
             {% endfor %}
         </div>

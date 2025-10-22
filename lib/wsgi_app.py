@@ -233,8 +233,21 @@ class WSGIApp:
                 
                 for pp, path_part in zip(pattern_parts, path_parts):
                     if pp.startswith('<') and pp.endswith('>'):
-                        param_name = pp[1:-1]
-                        params[param_name] = path_part
+                        # Extract parameter: <int:manual_id> -> manual_id
+                        param_def = pp[1:-1]
+                        if ':' in param_def:
+                            param_type, param_name = param_def.split(':', 1)
+                            # Convert to type if specified
+                            if param_type == 'int':
+                                try:
+                                    params[param_name] = int(path_part)
+                                except ValueError:
+                                    match = False
+                                    break
+                            else:
+                                params[param_name] = path_part
+                        else:
+                            params[param_def] = path_part
                     elif pp != path_part:
                         match = False
                         break
@@ -255,10 +268,6 @@ class WSGIApp:
             session_id = request.cookies.get('session_id')
             session = Session(session_id)
             
-            # Set session cookie if new
-            if not session_id:
-                response.set_cookie('session_id', session.session_id, max_age=3600*24*30)
-            
             # Match route
             handler, params = self.match_route(request.path, request.method)
             
@@ -272,6 +281,10 @@ class WSGIApp:
                 # Use returned response if any
                 if result is not None:
                     response = result
+                
+                # Always ensure session cookie is set
+                # This is important for redirects and new sessions
+                response.set_cookie('session_id', session.session_id, max_age=3600*24*30)
             else:
                 # 404 Not Found
                 response.set_status(404)

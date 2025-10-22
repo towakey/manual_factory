@@ -137,12 +137,13 @@ def manual_detail(request, response, session, manual_id):
         return response
     
     # Get steps
-    steps = ManualStep.get_by_manual(manual_id)
+    steps = ManualStep.find_by_manual_id(manual_id)
     
     # Log access
     AccessLog.create(
+        user_id=session.get('user_id'),
         manual_id=manual_id,
-        user_id=session.get('user_id')
+        action='view'
     )
     
     response.body = render_template('cgi_manual_detail.html',
@@ -183,8 +184,7 @@ def manual_create(request, response, session):
             description=description,
             tags=tags,
             status=status,
-            visibility='private',  # Default visibility
-            author_id=session.get('user_id')
+            created_by=session.get('user_id')
         )
         
         response.redirect(f'/manual/{manual_id}')
@@ -239,7 +239,8 @@ def manual_edit(request, response, session, manual_id):
             title=title,
             description=description,
             tags=tags,
-            status=status
+            status=status,
+            updated_by=session.get('user_id')
         )
         
         response.redirect(f'/manual/{manual_id}')
@@ -275,7 +276,7 @@ def manual_delete(request, response, session, manual_id):
 @admin_required
 def users_list(request, response, session):
     """List users"""
-    users = User.get_all()
+    users = User.find_all()
     
     response.body = render_template('cgi_users_list.html',
         users=users,
