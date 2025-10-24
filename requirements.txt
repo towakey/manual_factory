@@ -1,3 +1,0 @@
-# Manual Factory - CGI Version
-# Python 3.7+ standard library only
-# No external dependencies required!

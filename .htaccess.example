@@ -1,8 +1,0 @@
-Options +ExecCGI
-
-# ローカル環境に合わせて以下を設定してください
-# Windows環境の例:
-# SetEnv PYTHON_BIN "C:\Users\YOUR_USERNAME\AppData\Local\Programs\Python\Python38\python.exe"
-#
-# Linux環境の例:
-# SetEnv PYTHON_BIN "/usr/bin/python3"

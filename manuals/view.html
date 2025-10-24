@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>手順書詳細 - 手順書管理システム</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>手順書管理システム</h1>
+            <nav>
+                <a href="/index.html">手順書一覧</a>
+                <a href="/manuals/create.html" class="btn btn-success">新規作成</a>
+                <span id="userName"></span>
+                <button id="logoutBtn">ログアウト</button>
+            </nav>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div id="manualContainer">
+            <div class="loading">読み込み中</div>
+        </div>
+    </div>
+    
+    <script src="/static/js/api.js"></script>
+    <script>
+        let currentUser = null;
+        let manualId = null;
+        
+        // 初期化
+        async function init() {
+            currentUser = await checkAuth();
+            if (!currentUser) return;
+            
+            document.getElementById('userName').textContent = currentUser.name;
+            
+            // URLパラメータから手順書IDを取得
+            const params = new URLSearchParams(window.location.search);
+            manualId = params.get('id');
+            
+            if (!manualId) {
+                showAlert('手順書IDが指定されていません', 'error');
+                return;
+            }
+            
+            loadManual();
+        }
+        
+        // 手順書を読み込み
+        async function loadManual() {
+            try {
+                const data = await ManualAPI.get(manualId);
+                displayManual(data.manual);
+            } catch (error) {
+                handleError(error);
+            }
+        }
+        
+        // 手順書を表示
+        function displayManual(manual) {
+            const container = document.getElementById('manualContainer');
+            
+            let html = '<div class="card">';
+            
+            // ヘッダー
+            html += '<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">';
+            html += `<div>`;
+            html += `<h1 class="card-title">${escapeHtml(manual.title)}</h1>`;
+            html += `<p style="color: #666;">作成者: ${escapeHtml(manual.author_name)} | 更新日時: ${formatDate(manual.updated_at)}</p>`;
+            html += `</div>`;
+            
+            // 編集・削除ボタン
+            if (manual.author_id === currentUser.id || currentUser.role === 'admin') {
+                html += '<div>';
+                html += `<a href="/manuals/edit.html?id=${manual.id}" class="btn btn-primary">編集</a> `;
+                html += `<button onclick="deleteManual(${manual.id})" class="btn btn-danger">削除</button>`;
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            
+            // ステータス
+            html += `<p>${manual.is_published ? '<span class="badge badge-success">公開</span>' : '<span class="badge badge-warning">下書き</span>'}</p>`;
+            
+            // 説明
+            if (manual.description) {
+                html += `<p style="margin: 1rem 0; white-space: pre-wrap;">${escapeHtml(manual.description)}</p>`;
+            }
+            
+            // タグ
+            if (manual.tags && manual.tags.length > 0) {
+                html += '<div class="tags">';
+                manual.tags.forEach(tag => {
+                    html += `<span class="tag">${escapeHtml(tag.name)}</span>`;
+                });
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            
+            // ステップ
+            if (manual.steps && manual.steps.length > 0) {
+                html += '<div class="card">';
+                html += '<h2 class="card-title">手順</h2>';
+                html += '<ol class="steps-list">';
+                
+                manual.steps.forEach(step => {
+                    html += '<li class="step-item">';
+                    html += `<h3>ステップ ${step.step_number}: ${escapeHtml(step.title)}</h3>`;
+                    
+                    if (step.content) {
+                        html += `<p style="white-space: pre-wrap;">${escapeHtml(step.content)}</p>`;
+                    }
+                    
+                    if (step.image_path) {
+                        html += `<img src="${step.image_path}" alt="${escapeHtml(step.title)}">`;
+                    }
+                    
+                    if (step.note) {
+                        html += `<div style="margin-top: 0.5rem; padding: 0.75rem; background: #fff3cd; border-radius: 4px;">`;
+                        html += `<strong>備考:</strong> ${escapeHtml(step.note)}`;
+                        html += `</div>`;
+                    }
+                    
+                    html += '</li>';
+                });
+                
+                html += '</ol>';
+                html += '</div>';
+            }
+            
+            // 更新履歴
+            if (manual.histories && manual.histories.length > 0) {
+                html += '<div class="card">';
+                html += '<h2 class="card-title">更新履歴</h2>';
+                html += '<table><thead><tr>';
+                html += '<th>日時</th><th>ユーザー</th><th>操作</th><th>説明</th>';
+                html += '</tr></thead><tbody>';
+                
+                manual.histories.forEach(history => {
+                    html += '<tr>';
+                    html += `<td>${formatDate(history.created_at)}</td>`;
+                    html += `<td>${escapeHtml(history.user_name)}</td>`;
+                    html += `<td>${escapeHtml(history.action)}</td>`;
+                    html += `<td>${escapeHtml(history.description || '-')}</td>`;
+                    html += '</tr>';
+                });
+                
+                html += '</tbody></table>';
+                html += '</div>';
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        // 手順書削除
+        async function deleteManual(id) {
+            if (!confirm('本当に削除しますか?')) return;
+            
+            try {
+                await ManualAPI.delete(id);
+                showAlert('手順書を削除しました', 'success');
+                setTimeout(() => {
+                    window.location.href = '/index.html';
+                }, 1000);
+            } catch (error) {
+                handleError(error);
+            }
+        }
+        
+        // ユーティリティ関数
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleString('ja-JP');
+        }
+        
+        // イベントリスナー
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await AuthAPI.logout();
+                window.location.href = '/login.html';
+            } catch (error) {
+                handleError(error);
+            }
+        });
+        
+        // 初期化実行
+        init();
+    </script>
+</body>
+</html>

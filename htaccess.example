@@ -1,0 +1,19 @@
+# Apache設定ファイル
+# このファイルを .htaccess にリネームして使用してください
+
+# CGIの実行を許可
+Options +ExecCGI
+AddHandler cgi-script .py
+
+# ディレクトリインデックス
+DirectoryIndex index.html login.html
+
+# CGIディレクトリ設定
+<Directory "cgi-bin">
+    Options +ExecCGI
+    SetHandler cgi-script
+</Directory>
+
+# エラーページ
+ErrorDocument 404 /index.html
+ErrorDocument 500 /index.html

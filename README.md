@@ -1,194 +1,221 @@
-# Manual Factory - 手順書作成システム
+# 手順書管理システム
 
-## 概要
-Manual Factoryは、社内の作業手順を効率的に作成・管理・共有するためのWebアプリケーションです。
+手順書の作成・管理・共有を行うWebアプリケーションです。
 
-## 主な機能
-- ✅ ユーザー認証とアカウント管理
-- ✅ 手順書の作成・編集・削除
-- ✅ ステップごとの画像付き手順書作成
-- ✅ 各ステップに備考欄を追加可能
-- ✅ タグとキーワードによる検索機能
-- ✅ 下書き/公開ステータス管理
-- ✅ 閲覧ログと更新履歴の記録
-- ✅ 管理者によるユーザー管理
-- ✅ PDF出力機能（印刷用ページから出力）
+## 機能
+
+- **認証・認可**: メール・パスワードによるログイン、管理者/一般ユーザーの権限管理
+- **ユーザー管理**: ユーザーの登録・編集・削除（管理者のみ）
+- **手順書作成**: ステップ形式での手順書作成、画像添付、タグ付け
+- **手順書管理**: 一覧表示、検索、フィルタリング、並び替え
+- **公開範囲設定**: 全体公開、部署内公開、非公開から選択可能
+- **下書き保存**: 作成中の手順書を下書きとして保存可能
+- **更新履歴**: 手順書の更新履歴を記録・表示
+- **閲覧ログ**: 手順書の閲覧履歴を記録
 
 ## 技術スタック
-- **バックエンド**: Python 3.x, Flask
-- **データベース**: SQLite
-- **フロントエンド**: HTML, CSS, JavaScript (CDN不使用)
-- **認証**: Flask-Login
 
-## セットアップ手順
+- **フロントエンド**: HTML, CSS, JavaScript（Vanilla JS）
+- **バックエンド**: Python 3.7+ (CGI)
+- **データベース**: SQLite3
+- **Webサーバー**: Apache (XAMPP)
 
-### 1. 必要な環境
-- Python 3.8以上
-- XAMPP (Apache + Python CGI環境)
+## システム要件
 
-### 2. 依存パッケージのインストール
-```bash
-pip install -r requirements.txt
+- Python 3.7以上
+- Apache Webサーバー (XAMPP推奨)
+- ブラウザ: Chrome, Firefox, Edge等の最新版
+
+## インストール手順
+
+### 1. リポジトリの配置
+
+XAMPPのhtdocsフォルダにこのリポジトリを配置します。
+
+```
+C:\xampp\htdocs\manual_factory\
 ```
 
-### 3. データベースの初期化
-```bash
+### 2. データベースの初期化
+
+コマンドプロンプトまたはPowerShellで以下を実行します。
+
+```powershell
+cd C:\xampp\htdocs\manual_factory\database
 python init_db.py
 ```
 
-初期管理者アカウント:
-- メールアドレス: `admin@example.com`
-- パスワード: `admin123`
+初期管理者アカウントが作成されます：
+- Email: admin@example.com
+- Password: admin123
 
-**重要**: 初回ログイン後、必ずパスワードを変更してください。
+**※本番環境では必ずパスワードを変更してください。**
 
-### 4. アプリケーションの起動
+### 3. アップロードディレクトリの作成
 
-#### 開発環境での起動
-```bash
-python app.py
+画像アップロード用のディレクトリを作成します。
+
+```powershell
+mkdir C:\xampp\htdocs\manual_factory\uploads\images
 ```
 
-ブラウザで `http://localhost:5000` にアクセスしてください。
+### 4. Apache CGI設定
 
-#### XAMPP環境での起動
-1. `.htaccess.example` をコピーして `.htaccess` を作成
-2. `.htaccess` 内のPythonパスを環境に合わせて設定
-3. Apacheを起動
-4. ブラウザで `http://localhost/manual_factory/` にアクセス
+#### XAMPPの場合
 
-## ディレクトリ構成
-```
-manual_factory/
-├── app/                    # アプリケーションコア
-│   ├── __init__.py
-│   ├── database.py         # データベース接続
-│   ├── models.py           # データモデル
-│   ├── auth.py             # 認証機能
-│   └── utils.py            # ユーティリティ関数
-├── static/                 # 静的ファイル
-│   ├── css/
-│   │   └── style.css
-│   └── js/
-│       └── main.js
-├── templates/              # HTMLテンプレート
-│   ├── base.html
-│   ├── login.html
-│   ├── profile.html
-│   ├── manuals/
-│   │   ├── list.html
-│   │   ├── detail.html
-│   │   └── form.html
-│   └── admin/
-│       ├── users.html
-│       └── user_form.html
-├── data/                   # データベースファイル
-├── uploads/                # アップロード画像
-├── app.py                  # メインアプリケーション
-├── config.py               # 設定ファイル
-├── schema.sql              # データベーススキーマ
-├── init_db.py              # 初期化スクリプト
-└── requirements.txt        # 依存パッケージ
-
-```
-
-## 使い方
-
-### 1. ログイン
-初期管理者アカウントでログインします。
-
-### 2. ユーザー管理 (管理者のみ)
-- ナビゲーションバーの「ユーザー管理」から新規ユーザーを作成
-- ユーザーの編集・削除も可能
-
-### 3. 手順書の作成
-1. 「新規作成」ボタンをクリック
-2. タイトル、説明、タグを入力
-3. 「ステップ追加」でステップを追加
-4. 各ステップにタイトル、内容、画像を設定
-5. 下書き保存または公開
-
-### 4. 手順書の検索
-- キーワード検索: タイトル・説明で検索
-- タグ検索: タグでフィルタリング
-- ステータス: 下書き/公開で絞り込み
-
-## セキュリティ設定
-
-### 本番環境での推奨設定
-1. `config.py` の `SECRET_KEY` を変更
-2. `SESSION_COOKIE_SECURE = True` に設定（HTTPS使用時）
-3. デフォルト管理者アカウントのパスワードを変更
-4. データベースファイルへのWebアクセスを制限
-
-## トラブルシューティング
-
-### データベースエラー
-```bash
-# データベースを再初期化
-python init_db.py
-```
-
-### 画像アップロードエラー
-- `uploads/` ディレクトリの書き込み権限を確認
-- `config.py` の `MAX_CONTENT_LENGTH` を確認
-
-### ログインできない
-- ブラウザのCookieを削除
-- セッション設定を確認
-
-## ライセンス
-このプロジェクトはMITライセンスの下で公開されています。
-
-## サポート
-問題が発生した場合は、Issues にてご報告ください。
-
-## ローカル環境でのセットアップ
-
-### 1. CGIラッパースクリプトの作成
-
-各`.py`ファイルに対応する`.cgi`ファイルをローカルで作成してください。
-
-**例: `index.cgi`**
-
-```python
-#!C:\Users\YOUR_USERNAME\AppData\Local\Programs\Python\Python38\python.exe
-# -*- coding: utf-8 -*-
-import sys
-import os
-
-# index.pyを実行
-with open('index.py', 'r', encoding='utf-8') as f:
-    code = f.read()
-    exec(code)
-```
-
-**重要:** 
-- shebangの1行目は、ご自身の環境のPythonパスに書き換えてください
-- `.cgi`ファイルは`.gitignore`に含まれており、コミットされません
-
-### 2. `.htaccess`の作成
-
-`.htaccess.example`を参考に、ローカル用の`.htaccess`を作成してください：
+`C:\xampp\apache\conf\httpd.conf` を編集し、以下の設定を確認してください。
 
 ```apache
-Options +ExecCGI
+# CGIモジュールをロード（コメントアウトされていないことを確認）
+LoadModule cgi_module modules/mod_cgi.so
+
+# CGIディレクトリの設定を追加
+<Directory "C:/xampp/htdocs/manual_factory/cgi-bin">
+    Options +ExecCGI
+    AddHandler cgi-script .py
+    Require all granted
+</Directory>
+
+# Python CGIのためのハンドラー設定
+AddHandler cgi-script .py
 ```
 
-### 3. アクセス方法
+または、`C:\xampp\htdocs\manual_factory` に `.htaccess` ファイルを作成：
+
+```apache
+# CGIの実行を許可
+Options +ExecCGI
+AddHandler cgi-script .py
+
+# ディレクトリインデックス
+DirectoryIndex index.html
+
+# Python CGI設定
+<Directory "cgi-bin">
+    Options +ExecCGI
+    SetHandler cgi-script
+</Directory>
+```
+
+### 5. Pythonパスの確認
+
+CGIスクリプトの1行目（shebang）が正しいPythonパスを指していることを確認してください。
+
+Windowsの場合、`cgi-bin/api/` 内の各ファイルの先頭行を以下のように変更する必要がある場合があります：
+
+```python
+#!C:/Python37/python.exe
+```
+
+または環境に合わせたPythonのパスを指定してください。
+
+### 6. Apacheの再起動
+
+XAMPPコントロールパネルからApacheを再起動します。
+
+### 7. アクセス
 
 ブラウザで以下のURLにアクセスします：
 
 ```
-http://localhost/manual_factory/index.cgi
+http://localhost/manual_factory/login.html
 ```
 
-**注意:** `.py`ファイルに直接アクセスせず、必ず`.cgi`経由でアクセスしてください。
+## ディレクトリ構造
 
-## 開発の流れ
+```
+manual_factory/
+├── cgi-bin/
+│   ├── common/          # 共通モジュール
+│   │   ├── __init__.py
+│   │   ├── auth.py      # 認証・セッション管理
+│   │   ├── database.py  # データベース接続
+│   │   └── utils.py     # ユーティリティ関数
+│   └── api/             # APIエンドポイント
+│       ├── auth_*.py    # 認証API
+│       ├── users_*.py   # ユーザー管理API
+│       ├── manuals_*.py # 手順書管理API
+│       └── upload_image.py
+├── database/
+│   ├── schema.sql       # データベーススキーマ
+│   ├── init_db.py       # 初期化スクリプト
+│   └── manual_factory.db (自動生成)
+├── static/
+│   ├── css/
+│   │   └── style.css    # スタイルシート
+│   └── js/
+│       └── api.js       # API通信ライブラリ
+├── manuals/             # 手順書関連ページ
+│   ├── view.html        # 詳細表示
+│   ├── create.html      # 作成
+│   └── edit.html        # 編集
+├── users/
+│   └── index.html       # ユーザー管理
+├── uploads/
+│   └── images/          # アップロード画像
+├── index.html           # 手順書一覧
+├── login.html           # ログイン
+└── README.md
+```
 
-1. **コード開発**: `.py`ファイルを編集（shebangなし）
-2. **ローカルテスト**: `.cgi`経由でブラウザからアクセス
-3. **コミット**: `.py`ファイルのみコミット（環境非依存）
+## API エンドポイント
 
-これにより、リポジトリに環境固有の情報が含まれることはありません。
+### 認証API
+
+- `POST /cgi-bin/api/auth_login.py` - ログイン
+- `POST /cgi-bin/api/auth_logout.py` - ログアウト
+- `GET /cgi-bin/api/auth_me.py` - 現在のユーザー情報取得
+
+### ユーザー管理API（管理者のみ）
+
+- `GET /cgi-bin/api/users_list.py` - ユーザー一覧取得
+- `POST /cgi-bin/api/users_create.py` - ユーザー作成
+- `POST /cgi-bin/api/users_update.py?id={id}` - ユーザー更新
+- `POST /cgi-bin/api/users_delete.py?id={id}` - ユーザー削除
+
+### 手順書管理API
+
+- `GET /cgi-bin/api/manuals_list.py` - 手順書一覧取得
+- `GET /cgi-bin/api/manuals_get.py?id={id}` - 手順書詳細取得
+- `POST /cgi-bin/api/manuals_create.py` - 手順書作成
+- `POST /cgi-bin/api/manuals_update.py?id={id}` - 手順書更新
+- `POST /cgi-bin/api/manuals_delete.py?id={id}` - 手順書削除
+- `POST /cgi-bin/api/upload_image.py` - 画像アップロード
+
+## セキュリティ
+
+- パスワードはSHA-256でハッシュ化して保存
+- セッションは24時間で自動期限切れ
+- Cookie は HttpOnly, SameSite=Strict に設定
+- ユーザー削除は論理削除で履歴を保持
+- 画像アップロードは拡張子とサイズを制限
+
+## トラブルシューティング
+
+### CGIスクリプトが実行されない
+
+1. Apacheの設定でCGIが有効になっているか確認
+2. Pythonのパス（shebang）が正しいか確認
+3. ファイルのパーミッションを確認（実行権限が必要）
+4. Apacheのエラーログを確認: `C:\xampp\apache\logs\error.log`
+
+### データベースエラー
+
+1. データベースファイルが存在するか確認
+2. データベースファイルへの書き込み権限があるか確認
+3. `init_db.py` を再実行してデータベースを再初期化
+
+### 画像がアップロードできない
+
+1. `uploads/images` ディレクトリが存在するか確認
+2. ディレクトリへの書き込み権限があるか確認
+3. アップロードする画像のサイズが5MB以下か確認
+
+## ライセンス
+
+MIT License
+
+## 開発情報
+
+- バージョン: 1.0.0
+- 最終更新: 2025年
