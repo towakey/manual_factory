@@ -12,6 +12,9 @@ from datetime import datetime
 
 def json_response(data, status=200, cookies=None):
     """JSON レスポンスを出力"""
+    # 標準出力をUTF-8に設定
+    sys.stdout.reconfigure(encoding='utf-8')
+    
     # ステータスコード
     status_messages = {
         200: 'OK',
