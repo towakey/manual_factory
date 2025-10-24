@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>手順書作成 - 手順書管理システム</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/manual_factory/static/css/style.css">
 </head>
 <body>
     <header>
         <div class="container">
             <h1>手順書管理システム</h1>
             <nav>
-                <a href="/index.html">手順書一覧</a>
+                <a href="/manual_factory/index.html">手順書一覧</a>
                 <span id="userName"></span>
                 <button id="logoutBtn">ログアウト</button>
             </nav>
@@ -56,13 +56,13 @@
                 <div style="display: flex; gap: 1rem; margin-top: 2rem;">
                     <button type="submit" name="action" value="draft" class="btn btn-secondary">下書き保存</button>
                     <button type="submit" name="action" value="publish" class="btn btn-success">公開</button>
-                    <a href="/index.html" class="btn">キャンセル</a>
+                    <a href="/manual_factory/index.html" class="btn">キャンセル</a>
                 </div>
             </form>
         </div>
     </div>
     
-    <script src="/static/js/api.js"></script>
+    <script src="/manual_factory/static/js/api.js"></script>
     <script>
         let currentUser = null;
         let stepCounter = 0;
@@ -199,7 +199,7 @@
                 showAlert('手順書を作成しました', 'success');
                 
                 setTimeout(() => {
-                    window.location.href = `/manuals/view.html?id=${result.manual_id}`;
+                    window.location.href = `/manual_factory/manuals/view.html?id=${result.manual_id}`;
                 }, 1000);
                 
             } catch (error) {
@@ -213,7 +213,7 @@
         document.getElementById('logoutBtn').addEventListener('click', async () => {
             try {
                 await AuthAPI.logout();
-                window.location.href = '/login.html';
+                window.location.href = '/manual_factory/login.html';
             } catch (error) {
                 handleError(error);
             }

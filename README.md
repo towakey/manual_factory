@@ -26,7 +26,44 @@
 - Apache Webサーバー (XAMPP推奨)
 - ブラウザ: Chrome, Firefox, Edge等の最新版
 
-## インストール手順
+## クイックスタート（自動セットアップ）
+
+各環境用の自動セットアップツールを用意しています。
+
+### Windows (XAMPP/Apache)
+
+```powershell
+cd C:\xampp\htdocs\manual_factory
+python setup_windows.py
+```
+
+### Linux (Apache)
+
+```bash
+cd /var/www/html/manual_factory
+chmod +x setup_linux.sh
+./setup_linux.sh
+```
+
+### Windows (IIS)
+
+**管理者権限で実行:**
+
+```powershell
+cd C:\inetpub\wwwroot\manual_factory
+PowerShell -ExecutionPolicy Bypass -File setup_iis.ps1
+```
+
+セットアップツールは以下を自動実行します：
+- Pythonバージョンチェック
+- 必要なディレクトリの作成
+- データベースの初期化
+- CGIスクリプトの設定
+- Webサーバー設定
+
+## 手動インストール手順
+
+自動セットアップツールを使用しない場合は、以下の手順で手動セットアップできます。
 
 ### 1. リポジトリの配置
 
@@ -120,6 +157,16 @@ XAMPPコントロールパネルからApacheを再起動します。
 ```
 http://localhost/manual_factory/login.html
 ```
+
+## セットアップツール
+
+プロジェクトには以下のセットアップツールが含まれています：
+
+- `setup_windows.py` - Windows (XAMPP/Apache) 用自動セットアップ
+- `setup_linux.sh` - Linux (Apache) 用自動セットアップ
+- `setup_iis.ps1` - Windows (IIS) 用自動セットアップ
+
+各ツールの詳細は `SETUP.md` を参照してください。
 
 ## ディレクトリ構造
 

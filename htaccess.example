@@ -8,12 +8,5 @@ AddHandler cgi-script .py
 # ディレクトリインデックス
 DirectoryIndex index.html login.html
 
-# CGIディレクトリ設定
-<Directory "cgi-bin">
-    Options +ExecCGI
-    SetHandler cgi-script
-</Directory>
-
 # エラーページ
-ErrorDocument 404 /index.html
-ErrorDocument 500 /index.html
+ErrorDocument 404 /manual_factory/index.html

@@ -1,5 +1,65 @@
 # セットアップ手順
 
+## 自動セットアップツール（推奨）
+
+各環境用の自動セットアップツールを用意しています。これらのツールを使用すると、必要な設定を自動的に行います。
+
+### Windows (XAMPP/Apache)
+
+```powershell
+cd C:\xampp\htdocs\manual_factory
+python setup_windows.py
+```
+
+**機能:**
+- Pythonバージョンチェック
+- 必要なディレクトリの作成
+- データベースの初期化
+- CGIスクリプトのshebang自動設定
+- .htaccessファイルの作成
+- Apache起動状態の確認
+
+### Linux (Apache)
+
+```bash
+cd /var/www/html/manual_factory
+chmod +x setup_linux.sh
+./setup_linux.sh
+```
+
+**機能:**
+- Pythonとパッケージのチェック
+- Apache2、SQLite3のインストール（必要な場合）
+- CGIモジュールの有効化
+- ディレクトリとパーミッションの設定
+- データベースの初期化
+- Apacheサイト設定の作成
+- Apache再起動
+
+### Windows (IIS)
+
+**管理者権限で実行してください:**
+
+```powershell
+cd C:\inetpub\wwwroot\manual_factory
+PowerShell -ExecutionPolicy Bypass -File setup_iis.ps1
+```
+
+**機能:**
+- 管理者権限チェック
+- IIS機能のインストール
+- ディレクトリとパーミッションの設定
+- データベースの初期化
+- IISハンドラーマッピング設定
+- web.configの作成
+- IIS再起動
+
+---
+
+## 手動セットアップ（詳細）
+
+自動セットアップツールを使用しない場合や、カスタム設定が必要な場合は以下の手順に従ってください。
+
 ## Windowsでの設定（XAMPP使用）
 
 ### 1. Pythonのインストール確認

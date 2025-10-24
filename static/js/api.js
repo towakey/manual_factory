@@ -1,6 +1,6 @@
 // API通信用のユーティリティ
 
-const API_BASE = '/cgi-bin/api';
+const API_BASE = '/manual_factory/cgi-bin/api';
 
 // APIリクエストを送信
 async function apiRequest(endpoint, options = {}) {
