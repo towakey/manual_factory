@@ -165,8 +165,8 @@ async function checkAuth() {
         return data.user;
     } catch (error) {
         // 認証エラーの場合はログインページにリダイレクト
-        if (window.location.pathname !== '/login.html') {
-            window.location.href = '/login.html';
+        if (window.location.pathname !== '/manual_factory/login.html') {
+            window.location.href = '/manual_factory/login.html';
         }
         return null;
     }
