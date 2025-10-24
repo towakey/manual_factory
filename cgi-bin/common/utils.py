@@ -8,12 +8,33 @@ import json
 import sys
 import os
 import cgi
+import io
 from datetime import datetime
+
+# Windowsでのデフォルトエンコーディング問題を回避
+# CGI環境では標準入出力がバイナリモードで開始されるため、UTF-8ラッパーを設定
+if sys.platform == 'win32':
+    if hasattr(sys.stdout, 'buffer'):
+        # バイナリバッファをUTF-8テキストストリームでラップ
+        sys.stdout = io.TextIOWrapper(
+            sys.stdout.buffer,
+            encoding='utf-8',
+            errors='backslashreplace',
+            newline='\n',
+            line_buffering=False,
+            write_through=True
+        )
+    if hasattr(sys.stdin, 'buffer'):
+        # 標準入力もUTF-8に設定
+        sys.stdin = io.TextIOWrapper(
+            sys.stdin.buffer,
+            encoding='utf-8',
+            errors='strict',
+            newline=None
+        )
 
 def json_response(data, status=200, cookies=None):
     """JSON レスポンスを出力"""
-    # 標準出力をUTF-8に設定
-    sys.stdout.reconfigure(encoding='utf-8')
     
     # ステータスコード
     status_messages = {

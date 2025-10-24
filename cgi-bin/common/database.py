@@ -16,6 +16,8 @@ def get_db_connection():
     """データベース接続を取得（コンテキストマネージャー）"""
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row  # 列名でアクセス可能にする
+    # テキストデータをUTF-8文字列として取得
+    conn.text_factory = str
     try:
         yield conn
         conn.commit()
