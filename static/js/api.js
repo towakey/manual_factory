@@ -1,6 +1,6 @@
 // API通信用のユーティリティ
 
-const API_BASE = '/manual_factory/cgi-bin/api';
+const API_BASE = './cgi-bin/api';
 
 // APIリクエストを送信
 async function apiRequest(endpoint, options = {}) {
@@ -166,7 +166,7 @@ async function checkAuth() {
     } catch (error) {
         // 認証エラーの場合はログインページにリダイレクト
         if (window.location.pathname !== '/manual_factory/login.html') {
-            window.location.href = '/manual_factory/login.html';
+            window.location.href = './login.html';
         }
         return null;
     }

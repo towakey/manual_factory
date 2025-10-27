@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>手順書一覧 - 手順書管理システム</title>
-    <link rel="stylesheet" href="/manual_factory/static/css/style.css">
+    <link rel="stylesheet" href="./static/css/style.css">
 </head>
 <body>
     <header>
         <div class="container">
             <h1>手順書管理システム</h1>
             <nav id="nav">
-                <a href="/manual_factory/index.html">手順書一覧</a>
-                <a href="/manual_factory/manuals/create.html" class="btn btn-success">新規作成</a>
-                <a href="/manual_factory/users/index.html" id="usersLink" style="display: none;">ユーザー管理</a>
+                <a href="./index.html">手順書一覧</a>
+                <a href="./manuals/create.html" class="btn btn-success">新規作成</a>
+                <a href="./users/index.html" id="usersLink" style="display: none;">ユーザー管理</a>
                 <span id="userName"></span>
                 <button id="logoutBtn">ログアウト</button>
             </nav>
@@ -42,7 +42,7 @@
         </div>
     </div>
     
-    <script src="/manual_factory/static/js/api.js"></script>
+    <script src="./static/js/api.js"></script>
     <script>
         let currentUser = null;
         let currentPage = 1;
@@ -105,7 +105,7 @@
             
             manuals.forEach(manual => {
                 html += '<tr>';
-                html += `<td><a href="/manual_factory/manuals/view.html?id=${manual.id}">${escapeHtml(manual.title)}</a></td>`;
+                html += `<td><a href="./manuals/view.html?id=${manual.id}">${escapeHtml(manual.title)}</a></td>`;
                 html += `<td>${escapeHtml(manual.author_name)}</td>`;
                 html += `<td>${manual.step_count}</td>`;
                 html += `<td>${manual.is_published ? '<span class="badge badge-success">公開</span>' : '<span class="badge badge-warning">下書き</span>'}</td>`;
@@ -114,7 +114,7 @@
                 
                 // 作成者または管理者のみ編集・削除可能
                 if (manual.author_id === currentUser.id || currentUser.role === 'admin') {
-                    html += `<a href="/manual_factory/manuals/edit.html?id=${manual.id}" class="btn btn-secondary" style="padding: 0.5rem 1rem; margin-right: 0.5rem;">編集</a>`;
+                    html += `<a href="./manuals/edit.html?id=${manual.id}" class="btn btn-secondary" style="padding: 0.5rem 1rem; margin-right: 0.5rem;">編集</a>`;
                     html += `<button onclick="deleteManual(${manual.id})" class="btn btn-danger" style="padding: 0.5rem 1rem;">削除</button>`;
                 }
                 
@@ -208,7 +208,7 @@
         document.getElementById('logoutBtn').addEventListener('click', async () => {
             try {
                 await AuthAPI.logout();
-                window.location.href = '/manual_factory/login.html';
+                window.location.href = './login.html';
             } catch (error) {
                 handleError(error);
             }

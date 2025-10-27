@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ログイン - 手順書管理システム</title>
-    <link rel="stylesheet" href="/manual_factory/static/css/style.css">
+    <link rel="stylesheet" href="./static/css/style.css">
 </head>
 <body>
     <div class="container" style="max-width: 400px; margin-top: 5rem;">
@@ -38,7 +38,7 @@
         </div>
     </div>
     
-    <script src="/manual_factory/static/js/api.js"></script>
+    <script src="./static/js/api.js"></script>
     <script>
         const loginForm = document.getElementById('loginForm');
         const errorMessage = document.getElementById('errorMessage');
@@ -53,7 +53,7 @@
                 const data = await AuthAPI.login(email, password);
                 
                 if (data.success) {
-                    window.location.href = '/manual_factory/index.html';
+                    window.location.href = './index.html';
                 }
             } catch (error) {
                 errorMessage.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
