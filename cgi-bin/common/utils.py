@@ -11,9 +11,17 @@ import cgi
 import io
 from datetime import datetime
 
+# Webサーバー自動判定機能をインポート
+from .webserver import setup_server_environment, detect_web_server
+
+# Webサーバー環境のセットアップを実行
+setup_server_environment()
+
 # Windowsでのデフォルトエンコーディング問題を回避
 # CGI環境では標準入出力がバイナリモードで開始されるため、UTF-8ラッパーを設定
-if sys.platform == 'win32':
+server_type = detect_web_server()
+
+if sys.platform == 'win32' or server_type == 'iis':
     if hasattr(sys.stdout, 'buffer'):
         # バイナリバッファをUTF-8テキストストリームでラップ
         sys.stdout = io.TextIOWrapper(

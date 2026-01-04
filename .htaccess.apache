@@ -1,0 +1,45 @@
+# Apache設定ファイル
+# このファイルを .htaccess にリネームして使用してください
+
+# CGIの実行を許可
+Options +ExecCGI
+AddHandler cgi-script .py
+
+# ディレクトリインデックス
+DirectoryIndex index.html login.html
+
+# エラーページ
+ErrorDocument 404 /manual_factory/index.html
+
+# セキュリティヘッダー
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Pythonのエンコーディング設定
+SetEnv PYTHONIOENCODING utf-8
+SetEnv PYTHONUNBUFFERED 1
+
+# URLリライト（REST API用）
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # APIリクエストをcgi-binに転送
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^api/(.*)$ /manual_factory/cgi-bin/api/$1.py [L,QSA]
+    
+    # 静的ファイルはそのまま配信
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^static/(.*)$ - [L]
+</IfModule>
+
+# CGI設定
+<IfModule mod_cgi.c>
+    # Pythonスクリプトの実行時間制限を延長
+    <Files "*.py">
+        FcgidIOTimeout 120
+        FcgidIdleTimeout 120
+    </Files>
+</IfModule>
