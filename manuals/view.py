@@ -1,4 +1,29 @@
-<!DOCTYPE html>
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+手順書詳細ページ (CGI)
+"""
+
+import os
+import sys
+import traceback
+
+
+def setup_cgi():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = current_dir
+    if not os.path.isdir(os.path.join(project_root, "cgi-bin")):
+        project_root = os.path.abspath(os.path.join(current_dir, ".."))
+    cgi_bin = os.path.join(project_root, "cgi-bin")
+    if cgi_bin not in sys.path:
+        sys.path.insert(0, cgi_bin)
+    try:
+        import common.utils  # noqa: F401
+    except Exception:
+        pass
+
+
+HTML = """<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -11,44 +36,44 @@
         <div class="container">
             <h1>手順書管理システム</h1>
             <nav>
-                <a href="../index.html">手順書一覧</a>
-                <a href="../manuals/create.html" class="btn btn-success">新規作成</a>
+                <a href="../index.py">手順書一覧</a>
+                <a href="../manuals/create.py" class="btn btn-success">新規作成</a>
                 <span id="userName"></span>
                 <button id="logoutBtn">ログアウト</button>
             </nav>
         </div>
     </header>
-    
+
     <div class="container">
         <div id="manualContainer">
             <div class="loading">読み込み中</div>
         </div>
     </div>
-    
+
     <script src="../static/js/api.js"></script>
     <script>
         let currentUser = null;
         let manualId = null;
-        
+
         // 初期化
         async function init() {
             currentUser = await checkAuth();
             if (!currentUser) return;
-            
+
             document.getElementById('userName').textContent = currentUser.name;
-            
+
             // URLパラメータから手順書IDを取得
             const params = new URLSearchParams(window.location.search);
             manualId = params.get('id');
-            
+
             if (!manualId) {
                 showAlert('手順書IDが指定されていません', 'error');
                 return;
             }
-            
+
             loadManual();
         }
-        
+
         // 手順書を読み込み
         async function loadManual() {
             try {
@@ -58,38 +83,38 @@
                 handleError(error);
             }
         }
-        
+
         // 手順書を表示
         function displayManual(manual) {
             const container = document.getElementById('manualContainer');
-            
+
             let html = '<div class="card">';
-            
+
             // ヘッダー
             html += '<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">';
             html += `<div>`;
             html += `<h1 class="card-title">${escapeHtml(manual.title)}</h1>`;
             html += `<p style="color: #666;">作成者: ${escapeHtml(manual.author_name)} | 更新日時: ${formatDate(manual.updated_at)}</p>`;
             html += `</div>`;
-            
+
             // 編集・削除ボタン
             if (manual.author_id === currentUser.id || currentUser.role === 'admin') {
                 html += '<div>';
-                html += `<a href="../manuals/edit.html?id=${manual.id}" class="btn btn-primary">編集</a> `;
+                html += `<a href="../manuals/edit.py?id=${manual.id}" class="btn btn-primary">編集</a> `;
                 html += `<button onclick="deleteManual(${manual.id})" class="btn btn-danger">削除</button>`;
                 html += '</div>';
             }
-            
+
             html += '</div>';
-            
+
             // ステータス
             html += `<p>${manual.is_published ? '<span class="badge badge-success">公開</span>' : '<span class="badge badge-warning">下書き</span>'}</p>`;
-            
+
             // 説明
             if (manual.description) {
                 html += `<p style="margin: 1rem 0; white-space: pre-wrap;">${escapeHtml(manual.description)}</p>`;
             }
-            
+
             // タグ
             if (manual.tags && manual.tags.length > 0) {
                 html += '<div class="tags">';
@@ -98,40 +123,40 @@
                 });
                 html += '</div>';
             }
-            
+
             html += '</div>';
-            
+
             // ステップ
             if (manual.steps && manual.steps.length > 0) {
                 html += '<div class="card">';
                 html += '<h2 class="card-title">手順</h2>';
                 html += '<ol class="steps-list">';
-                
+
                 manual.steps.forEach(step => {
                     html += '<li class="step-item">';
                     html += `<h3>ステップ ${step.step_number}: ${escapeHtml(step.title)}</h3>`;
-                    
+
                     if (step.content) {
                         html += `<p style="white-space: pre-wrap;">${escapeHtml(step.content)}</p>`;
                     }
-                    
+
                     if (step.image_path) {
                         html += `<img src="${step.image_path}" alt="${escapeHtml(step.title)}">`;
                     }
-                    
+
                     if (step.note) {
                         html += `<div style="margin-top: 0.5rem; padding: 0.75rem; background: #fff3cd; border-radius: 4px;">`;
                         html += `<strong>備考:</strong> ${escapeHtml(step.note)}`;
                         html += `</div>`;
                     }
-                    
+
                     html += '</li>';
                 });
-                
+
                 html += '</ol>';
                 html += '</div>';
             }
-            
+
             // 更新履歴
             if (manual.histories && manual.histories.length > 0) {
                 html += '<div class="card">';
@@ -139,7 +164,7 @@
                 html += '<table><thead><tr>';
                 html += '<th>日時</th><th>ユーザー</th><th>操作</th><th>説明</th>';
                 html += '</tr></thead><tbody>';
-                
+
                 manual.histories.forEach(history => {
                     html += '<tr>';
                     html += `<td>${formatDate(history.created_at)}</td>`;
@@ -148,54 +173,71 @@
                     html += `<td>${escapeHtml(history.description || '-')}</td>`;
                     html += '</tr>';
                 });
-                
+
                 html += '</tbody></table>';
                 html += '</div>';
             }
-            
+
             container.innerHTML = html;
         }
-        
+
         // 手順書削除
         async function deleteManual(id) {
             if (!confirm('本当に削除しますか?')) return;
-            
+
             try {
                 await ManualAPI.delete(id);
                 showAlert('手順書を削除しました', 'success');
                 setTimeout(() => {
-                    window.location.href = '../index.html';
+                    window.location.href = '../index.py';
                 }, 1000);
             } catch (error) {
                 handleError(error);
             }
         }
-        
+
         // ユーティリティ関数
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
-        
+
         function formatDate(dateString) {
             if (!dateString) return '-';
             const date = new Date(dateString);
             return date.toLocaleString('ja-JP');
         }
-        
+
         // イベントリスナー
         document.getElementById('logoutBtn').addEventListener('click', async () => {
             try {
                 await AuthAPI.logout();
-                window.location.href = '../login.html';
+                window.location.href = '../login.py';
             } catch (error) {
                 handleError(error);
             }
         });
-        
+
         // 初期化実行
         init();
     </script>
 </body>
 </html>
+"""
+
+
+def render():
+    print("Content-Type: text/html; charset=utf-8")
+    print()
+    print(HTML)
+
+
+if __name__ == "__main__":
+    try:
+        setup_cgi()
+        render()
+    except Exception:
+        print("Content-Type: text/plain; charset=utf-8")
+        print()
+        traceback.print_exc()

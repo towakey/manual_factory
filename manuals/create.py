@@ -1,4 +1,29 @@
-<!DOCTYPE html>
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+手順書作成ページ (CGI)
+"""
+
+import os
+import sys
+import traceback
+
+
+def setup_cgi():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = current_dir
+    if not os.path.isdir(os.path.join(project_root, "cgi-bin")):
+        project_root = os.path.abspath(os.path.join(current_dir, ".."))
+    cgi_bin = os.path.join(project_root, "cgi-bin")
+    if cgi_bin not in sys.path:
+        sys.path.insert(0, cgi_bin)
+    try:
+        import common.utils  # noqa: F401
+    except Exception:
+        pass
+
+
+HTML = """<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -11,28 +36,28 @@
         <div class="container">
             <h1>手順書管理システム</h1>
             <nav>
-                <a href="../index.html">手順書一覧</a>
+                <a href="../index.py">手順書一覧</a>
                 <span id="userName"></span>
                 <button id="logoutBtn">ログアウト</button>
             </nav>
         </div>
     </header>
-    
+
     <div class="container">
         <div class="card">
             <h1 class="card-title">手順書作成</h1>
-            
+
             <form id="manualForm">
                 <div class="form-group">
                     <label for="title">タイトル <span style="color: red;">*</span></label>
                     <input type="text" id="title" name="title" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="description">説明</label>
                     <textarea id="description" name="description" rows="4"></textarea>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="visibility">公開範囲</label>
                     <select id="visibility" name="visibility">
@@ -41,48 +66,48 @@
                         <option value="private">非公開</option>
                     </select>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="tags">タグ（カンマ区切り）</label>
                     <input type="text" id="tags" name="tags" placeholder="例: 作業手順, 初心者向け">
                 </div>
-                
+
                 <div class="form-group">
                     <label>ステップ</label>
                     <div id="stepsContainer"></div>
                     <button type="button" class="btn btn-secondary" id="addStepBtn">ステップを追加</button>
                 </div>
-                
+
                 <div style="display: flex; gap: 1rem; margin-top: 2rem;">
                     <button type="submit" name="action" value="draft" class="btn btn-secondary">下書き保存</button>
                     <button type="submit" name="action" value="publish" class="btn btn-success">公開</button>
-                    <a href="../index.html" class="btn">キャンセル</a>
+                    <a href="../index.py" class="btn">キャンセル</a>
                 </div>
             </form>
         </div>
     </div>
-    
+
     <script src="../static/js/api.js"></script>
     <script>
         let currentUser = null;
         let stepCounter = 0;
-        
+
         // 初期化
         async function init() {
             currentUser = await checkAuth();
             if (!currentUser) return;
-            
+
             document.getElementById('userName').textContent = currentUser.name;
-            
+
             // 初期ステップを追加
             addStep();
         }
-        
+
         // ステップを追加
         function addStep() {
             stepCounter++;
             const container = document.getElementById('stepsContainer');
-            
+
             const stepDiv = document.createElement('div');
             stepDiv.className = 'step-item';
             stepDiv.id = `step-${stepCounter}`;
@@ -91,35 +116,35 @@
                     <h3>ステップ ${stepCounter}</h3>
                     <button type="button" class="btn btn-danger" onclick="removeStep('step-${stepCounter}')" style="padding: 0.25rem 0.75rem;">削除</button>
                 </div>
-                
+
                 <div class="form-group">
                     <label>タイトル</label>
                     <input type="text" class="step-title" placeholder="ステップのタイトル">
                 </div>
-                
+
                 <div class="form-group">
                     <label>内容</label>
                     <textarea class="step-content" rows="3" placeholder="手順の詳細"></textarea>
                 </div>
-                
+
                 <div class="form-group">
                     <label>備考</label>
                     <textarea class="step-note" rows="2" placeholder="注意事項など"></textarea>
                 </div>
-                
+
                 <div class="form-group">
                     <label>画像</label>
                     <input type="file" class="step-image" accept="image/*">
                     <div class="step-image-preview" style="margin-top: 0.5rem;"></div>
                 </div>
             `;
-            
+
             container.appendChild(stepDiv);
-            
+
             // 画像アップロードのプレビュー
             const imageInput = stepDiv.querySelector('.step-image');
             const imagePreview = stepDiv.querySelector('.step-image-preview');
-            
+
             imageInput.addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (file) {
@@ -131,7 +156,7 @@
                 }
             });
         }
-        
+
         // ステップを削除
         function removeStep(stepId) {
             const stepDiv = document.getElementById(stepId);
@@ -139,42 +164,42 @@
                 stepDiv.remove();
             }
         }
-        
+
         // フォーム送信
         document.getElementById('manualForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            
+
             const submitter = e.submitter;
             const action = submitter.value;
-            
+
             try {
                 // 基本情報を取得
                 const title = document.getElementById('title').value;
                 const description = document.getElementById('description').value;
                 const visibility = document.getElementById('visibility').value;
                 const tagsInput = document.getElementById('tags').value;
-                
+
                 // タグを配列に変換
                 const tags = tagsInput.split(',').map(t => t.trim()).filter(t => t);
-                
+
                 // ステップを取得
                 const steps = [];
                 const stepDivs = document.querySelectorAll('[id^="step-"]');
-                
+
                 for (const stepDiv of stepDivs) {
                     const stepTitle = stepDiv.querySelector('.step-title').value;
                     const stepContent = stepDiv.querySelector('.step-content').value;
                     const stepNote = stepDiv.querySelector('.step-note').value;
                     const stepImageInput = stepDiv.querySelector('.step-image');
-                    
+
                     let imagePath = '';
-                    
+
                     // 画像がある場合はアップロード
                     if (stepImageInput.files.length > 0) {
                         const imageData = await ManualAPI.uploadImage(stepImageInput.files[0]);
                         imagePath = imageData.path;
                     }
-                    
+
                     steps.push({
                         title: stepTitle || `ステップ ${steps.length + 1}`,
                         content: stepContent,
@@ -182,7 +207,7 @@
                         image_path: imagePath
                     });
                 }
-                
+
                 // 手順書データ
                 const manualData = {
                     title: title,
@@ -192,35 +217,52 @@
                     tags: tags,
                     steps: steps
                 };
-                
+
                 // API呼び出し
                 const result = await ManualAPI.create(manualData);
-                
+
                 showAlert('手順書を作成しました', 'success');
-                
+
                 setTimeout(() => {
-                    window.location.href = `../manuals/view.html?id=${result.manual_id}`;
+                    window.location.href = `../manuals/view.py?id=${result.manual_id}`;
                 }, 1000);
-                
+
             } catch (error) {
                 handleError(error);
             }
         });
-        
+
         // イベントリスナー
         document.getElementById('addStepBtn').addEventListener('click', addStep);
-        
+
         document.getElementById('logoutBtn').addEventListener('click', async () => {
             try {
                 await AuthAPI.logout();
-                window.location.href = '../login.html';
+                window.location.href = '../login.py';
             } catch (error) {
                 handleError(error);
             }
         });
-        
+
         // 初期化実行
         init();
     </script>
 </body>
 </html>
+"""
+
+
+def render():
+    print("Content-Type: text/html; charset=utf-8")
+    print()
+    print(HTML)
+
+
+if __name__ == "__main__":
+    try:
+        setup_cgi()
+        render()
+    except Exception:
+        print("Content-Type: text/plain; charset=utf-8")
+        print()
+        traceback.print_exc()

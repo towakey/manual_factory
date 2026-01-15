@@ -1,4 +1,29 @@
-<!DOCTYPE html>
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+ユーザー管理ページ (CGI)
+"""
+
+import os
+import sys
+import traceback
+
+
+def setup_cgi():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = current_dir
+    if not os.path.isdir(os.path.join(project_root, "cgi-bin")):
+        project_root = os.path.abspath(os.path.join(current_dir, ".."))
+    cgi_bin = os.path.join(project_root, "cgi-bin")
+    if cgi_bin not in sys.path:
+        sys.path.insert(0, cgi_bin)
+    try:
+        import common.utils  # noqa: F401
+    except Exception:
+        pass
+
+
+HTML = """<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -11,34 +36,34 @@
         <div class="container">
             <h1>手順書管理システム</h1>
             <nav>
-                <a href="../index.html">手順書一覧</a>
-                <a href="../users/index.html">ユーザー管理</a>
+                <a href="../index.py">手順書一覧</a>
+                <a href="../users/index.py">ユーザー管理</a>
                 <span id="userName"></span>
                 <button id="logoutBtn">ログアウト</button>
             </nav>
         </div>
     </header>
-    
+
     <div class="container">
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h2 class="card-title" style="margin: 0;">ユーザー管理</h2>
                 <button class="btn btn-success" id="createUserBtn">新規ユーザー</button>
             </div>
-            
+
             <div class="search-bar">
                 <input type="text" id="searchInput" placeholder="検索...">
                 <button class="btn btn-primary" id="searchBtn">検索</button>
             </div>
-            
+
             <div id="usersContainer">
                 <div class="loading">読み込み中</div>
             </div>
-            
+
             <div id="pagination" class="pagination"></div>
         </div>
     </div>
-    
+
     <!-- ユーザー作成/編集モーダル -->
     <div id="userModal" class="modal">
         <div class="modal-content">
@@ -46,31 +71,31 @@
                 <h2 id="modalTitle">ユーザー作成</h2>
                 <button class="modal-close" id="closeModal">&times;</button>
             </div>
-            
+
             <form id="userForm">
                 <input type="hidden" id="userId">
-                
+
                 <div class="form-group">
                     <label for="name">氏名 <span style="color: red;">*</span></label>
                     <input type="text" id="name" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="email">メールアドレス <span style="color: red;">*</span></label>
                     <input type="email" id="email" required>
                 </div>
-                
+
                 <div class="form-group" id="passwordGroup">
                     <label for="password">パスワード <span style="color: red;">*</span></label>
                     <input type="password" id="password" minlength="6">
                     <small style="color: #666;">6文字以上で入力してください</small>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="department">所属</label>
                     <input type="text" id="department">
                 </div>
-                
+
                 <div class="form-group">
                     <label for="role">権限</label>
                     <select id="role">
@@ -78,7 +103,7 @@
                         <option value="admin">管理者</option>
                     </select>
                 </div>
-                
+
                 <div style="display: flex; gap: 1rem; justify-content: flex-end;">
                     <button type="button" class="btn btn-secondary" id="cancelBtn">キャンセル</button>
                     <button type="submit" class="btn btn-success">保存</button>
@@ -86,61 +111,61 @@
             </form>
         </div>
     </div>
-    
+
     <script src="../static/js/api.js"></script>
     <script>
         let currentUser = null;
         let currentPage = 1;
         const limit = 20;
         let isEditMode = false;
-        
+
         // 初期化
         async function init() {
             currentUser = await checkAuth();
             if (!currentUser) return;
-            
+
             // 管理者権限チェック
             if (currentUser.role !== 'admin') {
                 showAlert('管理者権限が必要です', 'error');
                 setTimeout(() => {
-                    window.location.href = '../index.html';
+                    window.location.href = '../index.py';
                 }, 2000);
                 return;
             }
-            
+
             document.getElementById('userName').textContent = currentUser.name;
             loadUsers();
         }
-        
+
         // ユーザー一覧を読み込み
         async function loadUsers() {
             try {
                 const search = document.getElementById('searchInput').value;
-                
+
                 const params = {
                     page: currentPage,
                     limit: limit,
                     search: search
                 };
-                
+
                 const data = await UserAPI.list(params);
-                
+
                 displayUsers(data.users);
                 displayPagination(data.pagination);
             } catch (error) {
                 handleError(error);
             }
         }
-        
+
         // ユーザーを表示
         function displayUsers(users) {
             const container = document.getElementById('usersContainer');
-            
+
             if (users.length === 0) {
                 container.innerHTML = '<p style="text-align: center; color: #999;">ユーザーが見つかりません</p>';
                 return;
             }
-            
+
             let html = '<table><thead><tr>';
             html += '<th>氏名</th>';
             html += '<th>メールアドレス</th>';
@@ -149,7 +174,7 @@
             html += '<th>登録日</th>';
             html += '<th>操作</th>';
             html += '</tr></thead><tbody>';
-            
+
             users.forEach(user => {
                 html += '<tr>';
                 html += `<td>${escapeHtml(user.name)}</td>`;
@@ -159,32 +184,32 @@
                 html += `<td>${formatDate(user.created_at)}</td>`;
                 html += '<td>';
                 html += `<button onclick="editUser(${user.id})" class="btn btn-secondary" style="padding: 0.5rem 1rem; margin-right: 0.5rem;">編集</button>`;
-                
+
                 // 自分自身は削除できない
                 if (user.id !== currentUser.id) {
                     html += `<button onclick="deleteUser(${user.id})" class="btn btn-danger" style="padding: 0.5rem 1rem;">削除</button>`;
                 }
-                
+
                 html += '</td>';
                 html += '</tr>';
             });
-            
+
             html += '</tbody></table>';
             container.innerHTML = html;
         }
-        
+
         // ページネーション表示
         function displayPagination(pagination) {
             const container = document.getElementById('pagination');
-            
+
             if (pagination.pages <= 1) {
                 container.innerHTML = '';
                 return;
             }
-            
+
             let html = '';
             html += `<button ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">前へ</button>`;
-            
+
             for (let i = 1; i <= pagination.pages; i++) {
                 if (i === 1 || i === pagination.pages || (i >= currentPage - 2 && i <= currentPage + 2)) {
                     html += `<button class="${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
@@ -192,18 +217,18 @@
                     html += '<span>...</span>';
                 }
             }
-            
+
             html += `<button ${currentPage === pagination.pages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">次へ</button>`;
-            
+
             container.innerHTML = html;
         }
-        
+
         // ページ変更
         function changePage(page) {
             currentPage = page;
             loadUsers();
         }
-        
+
         // モーダルを開く（新規作成）
         document.getElementById('createUserBtn').addEventListener('click', () => {
             isEditMode = false;
@@ -214,7 +239,7 @@
             document.getElementById('password').required = true;
             document.getElementById('userModal').classList.add('active');
         });
-        
+
         // モーダルを開く（編集）
         async function editUser(userId) {
             isEditMode = true;
@@ -223,44 +248,44 @@
             document.getElementById('passwordGroup').style.display = 'block';
             document.getElementById('password').required = false;
             document.getElementById('password').placeholder = '変更する場合のみ入力';
-            
+
             try {
                 // ユーザー情報を取得（一覧から取得）
                 const data = await UserAPI.list({ search: '' });
                 const user = data.users.find(u => u.id === userId);
-                
+
                 if (user) {
                     document.getElementById('name').value = user.name;
                     document.getElementById('email').value = user.email;
                     document.getElementById('department').value = user.department || '';
                     document.getElementById('role').value = user.role;
                 }
-                
+
                 document.getElementById('userModal').classList.add('active');
             } catch (error) {
                 handleError(error);
             }
         }
-        
+
         // モーダルを閉じる
         function closeModal() {
             document.getElementById('userModal').classList.remove('active');
         }
-        
+
         document.getElementById('closeModal').addEventListener('click', closeModal);
         document.getElementById('cancelBtn').addEventListener('click', closeModal);
-        
+
         // モーダル外クリックで閉じる
         document.getElementById('userModal').addEventListener('click', (e) => {
             if (e.target.id === 'userModal') {
                 closeModal();
             }
         });
-        
+
         // ユーザーフォーム送信
         document.getElementById('userForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             try {
                 const userData = {
                     name: document.getElementById('name').value,
@@ -268,12 +293,12 @@
                     department: document.getElementById('department').value,
                     role: document.getElementById('role').value
                 };
-                
+
                 const password = document.getElementById('password').value;
                 if (password) {
                     userData.password = password;
                 }
-                
+
                 if (isEditMode) {
                     const userId = document.getElementById('userId').value;
                     await UserAPI.update(userId, userData);
@@ -286,18 +311,18 @@
                     await UserAPI.create(userData);
                     showAlert('ユーザーを作成しました', 'success');
                 }
-                
+
                 closeModal();
                 loadUsers();
             } catch (error) {
                 handleError(error);
             }
         });
-        
+
         // ユーザー削除
         async function deleteUser(userId) {
             if (!confirm('本当に削除しますか?')) return;
-            
+
             try {
                 await UserAPI.delete(userId);
                 showAlert('ユーザーを削除しました', 'success');
@@ -306,44 +331,61 @@
                 handleError(error);
             }
         }
-        
+
         // ユーティリティ関数
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
-        
+
         function formatDate(dateString) {
             if (!dateString) return '-';
             const date = new Date(dateString);
             return date.toLocaleString('ja-JP');
         }
-        
+
         // イベントリスナー
         document.getElementById('searchBtn').addEventListener('click', () => {
             currentPage = 1;
             loadUsers();
         });
-        
+
         document.getElementById('searchInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 currentPage = 1;
                 loadUsers();
             }
         });
-        
+
         document.getElementById('logoutBtn').addEventListener('click', async () => {
             try {
                 await AuthAPI.logout();
-                window.location.href = '../login.html';
+                window.location.href = '../login.py';
             } catch (error) {
                 handleError(error);
             }
         });
-        
+
         // 初期化実行
         init();
     </script>
 </body>
 </html>
+"""
+
+
+def render():
+    print("Content-Type: text/html; charset=utf-8")
+    print()
+    print(HTML)
+
+
+if __name__ == "__main__":
+    try:
+        setup_cgi()
+        render()
+    except Exception:
+        print("Content-Type: text/plain; charset=utf-8")
+        print()
+        traceback.print_exc()

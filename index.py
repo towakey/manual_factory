@@ -1,4 +1,29 @@
-<!DOCTYPE html>
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+手順書一覧ページ (CGI)
+"""
+
+import os
+import sys
+import traceback
+
+
+def setup_cgi():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = current_dir
+    if not os.path.isdir(os.path.join(project_root, "cgi-bin")):
+        project_root = os.path.abspath(os.path.join(current_dir, ".."))
+    cgi_bin = os.path.join(project_root, "cgi-bin")
+    if cgi_bin not in sys.path:
+        sys.path.insert(0, cgi_bin)
+    try:
+        import common.utils  # noqa: F401
+    except Exception:
+        pass
+
+
+HTML = """<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -11,19 +36,19 @@
         <div class="container">
             <h1>手順書管理システム</h1>
             <nav id="nav">
-                <a href="./index.html">手順書一覧</a>
-                <a href="./manuals/create.html" class="btn btn-success">新規作成</a>
-                <a href="./users/index.html" id="usersLink" style="display: none;">ユーザー管理</a>
+                <a href="./index.py">手順書一覧</a>
+                <a href="./manuals/create.py" class="btn btn-success">新規作成</a>
+                <a href="./users/index.py" id="usersLink" style="display: none;">ユーザー管理</a>
                 <span id="userName"></span>
                 <button id="logoutBtn">ログアウト</button>
             </nav>
         </div>
     </header>
-    
+
     <div class="container">
         <div class="card">
             <h2 class="card-title">手順書一覧</h2>
-            
+
             <div class="search-bar">
                 <input type="text" id="searchInput" placeholder="検索...">
                 <select id="statusFilter">
@@ -33,67 +58,67 @@
                 </select>
                 <button class="btn btn-primary" id="searchBtn">検索</button>
             </div>
-            
+
             <div id="manualsContainer">
                 <div class="loading">読み込み中</div>
             </div>
-            
+
             <div id="pagination" class="pagination"></div>
         </div>
     </div>
-    
+
     <script src="./static/js/api.js"></script>
     <script>
         let currentUser = null;
         let currentPage = 1;
         const limit = 20;
-        
+
         // 初期化
         async function init() {
             currentUser = await checkAuth();
             if (!currentUser) return;
-            
+
             document.getElementById('userName').textContent = currentUser.name;
-            
+
             // 管理者の場合はユーザー管理リンクを表示
             if (currentUser.role === 'admin') {
                 document.getElementById('usersLink').style.display = 'block';
             }
-            
+
             loadManuals();
         }
-        
+
         // 手順書一覧を読み込み
         async function loadManuals() {
             try {
                 const search = document.getElementById('searchInput').value;
                 const isPublished = document.getElementById('statusFilter').value;
-                
+
                 const params = {
                     page: currentPage,
                     limit: limit,
                     search: search,
                     is_published: isPublished
                 };
-                
+
                 const data = await ManualAPI.list(params);
-                
+
                 displayManuals(data.manuals);
                 displayPagination(data.pagination);
             } catch (error) {
                 handleError(error);
             }
         }
-        
+
         // 手順書を表示
         function displayManuals(manuals) {
             const container = document.getElementById('manualsContainer');
-            
+
             if (manuals.length === 0) {
                 container.innerHTML = '<p style="text-align: center; color: #999;">手順書が見つかりません</p>';
                 return;
             }
-            
+
             let html = '<table><thead><tr>';
             html += '<th>タイトル</th>';
             html += '<th>作成者</th>';
@@ -102,44 +127,44 @@
             html += '<th>更新日時</th>';
             html += '<th>操作</th>';
             html += '</tr></thead><tbody>';
-            
+
             manuals.forEach(manual => {
                 html += '<tr>';
-                html += `<td><a href="./manuals/view.html?id=${manual.id}">${escapeHtml(manual.title)}</a></td>`;
+                html += `<td><a href="./manuals/view.py?id=${manual.id}">${escapeHtml(manual.title)}</a></td>`;
                 html += `<td>${escapeHtml(manual.author_name)}</td>`;
                 html += `<td>${manual.step_count}</td>`;
                 html += `<td>${manual.is_published ? '<span class="badge badge-success">公開</span>' : '<span class="badge badge-warning">下書き</span>'}</td>`;
                 html += `<td>${formatDate(manual.updated_at)}</td>`;
                 html += '<td>';
-                
+
                 // 作成者または管理者のみ編集・削除可能
                 if (manual.author_id === currentUser.id || currentUser.role === 'admin') {
-                    html += `<a href="./manuals/edit.html?id=${manual.id}" class="btn btn-secondary" style="padding: 0.5rem 1rem; margin-right: 0.5rem;">編集</a>`;
+                    html += `<a href="./manuals/edit.py?id=${manual.id}" class="btn btn-secondary" style="padding: 0.5rem 1rem; margin-right: 0.5rem;">編集</a>`;
                     html += `<button onclick="deleteManual(${manual.id})" class="btn btn-danger" style="padding: 0.5rem 1rem;">削除</button>`;
                 }
-                
+
                 html += '</td>';
                 html += '</tr>';
             });
-            
+
             html += '</tbody></table>';
             container.innerHTML = html;
         }
-        
+
         // ページネーション表示
         function displayPagination(pagination) {
             const container = document.getElementById('pagination');
-            
+
             if (pagination.pages <= 1) {
                 container.innerHTML = '';
                 return;
             }
-            
+
             let html = '';
-            
+
             // 前へボタン
             html += `<button ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">前へ</button>`;
-            
+
             // ページ番号
             for (let i = 1; i <= pagination.pages; i++) {
                 if (i === 1 || i === pagination.pages || (i >= currentPage - 2 && i <= currentPage + 2)) {
@@ -148,23 +173,23 @@
                     html += '<span>...</span>';
                 }
             }
-            
+
             // 次へボタン
             html += `<button ${currentPage === pagination.pages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">次へ</button>`;
-            
+
             container.innerHTML = html;
         }
-        
+
         // ページ変更
         function changePage(page) {
             currentPage = page;
             loadManuals();
         }
-        
+
         // 手順書削除
         async function deleteManual(manualId) {
             if (!confirm('本当に削除しますか?')) return;
-            
+
             try {
                 await ManualAPI.delete(manualId);
                 showAlert('手順書を削除しました', 'success');
@@ -173,49 +198,66 @@
                 handleError(error);
             }
         }
-        
+
         // ユーティリティ関数
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
-        
+
         function formatDate(dateString) {
             if (!dateString) return '-';
             const date = new Date(dateString);
             return date.toLocaleString('ja-JP');
         }
-        
+
         // イベントリスナー
         document.getElementById('searchBtn').addEventListener('click', () => {
             currentPage = 1;
             loadManuals();
         });
-        
+
         document.getElementById('searchInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 currentPage = 1;
                 loadManuals();
             }
         });
-        
+
         document.getElementById('statusFilter').addEventListener('change', () => {
             currentPage = 1;
             loadManuals();
         });
-        
+
         document.getElementById('logoutBtn').addEventListener('click', async () => {
             try {
                 await AuthAPI.logout();
-                window.location.href = './login.html';
+                window.location.href = './login.py';
             } catch (error) {
                 handleError(error);
             }
         });
-        
+
         // 初期化実行
         init();
     </script>
 </body>
 </html>
+"""
+
+
+def render():
+    print("Content-Type: text/html; charset=utf-8")
+    print()
+    print(HTML)
+
+
+if __name__ == "__main__":
+    try:
+        setup_cgi()
+        render()
+    except Exception:
+        print("Content-Type: text/plain; charset=utf-8")
+        print()
+        traceback.print_exc()

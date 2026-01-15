@@ -1,6 +1,7 @@
 // API通信用のユーティリティ
 
-const API_BASE = './cgi-bin/api';
+const APP_ROOT = window.location.pathname.startsWith('/manual_factory/') ? '/manual_factory' : '';
+const API_BASE = `${APP_ROOT}/cgi-bin/api`;
 
 // APIリクエストを送信
 async function apiRequest(endpoint, options = {}) {
@@ -165,8 +166,9 @@ async function checkAuth() {
         return data.user;
     } catch (error) {
         // 認証エラーの場合はログインページにリダイレクト
-        if (window.location.pathname !== '/manual_factory/login.html') {
-            window.location.href = './login.html';
+        const loginPath = `${APP_ROOT}/login.py`;
+        if (window.location.pathname !== loginPath) {
+            window.location.href = loginPath;
         }
         return null;
     }
