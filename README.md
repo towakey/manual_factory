@@ -18,12 +18,12 @@
 - **フロントエンド**: HTML, CSS, JavaScript（Vanilla JS）
 - **バックエンド**: Python 3.7+ (CGI)
 - **データベース**: SQLite3
-- **Webサーバー**: Apache (XAMPP)
+- **Webサーバー**: Apache / IIS / Nginx（FastCGI + fcgiwrap 等）
 
 ## システム要件
 
 - Python 3.7以上
-- Apache Webサーバー (XAMPP推奨)
+- Webサーバー: Apache / IIS / Nginx（FastCGI/CGI対応）
 - ブラウザ: Chrome, Firefox, Edge等の最新版
 
 ## クイックスタート（自動セットアップ）
@@ -61,6 +61,72 @@ PowerShell -ExecutionPolicy Bypass -File setup_iis.ps1
 - CGIスクリプトの設定
 - Webサーバー設定
 
+## サーバー別インストール手順
+
+CGI方式で動作します。IIS を優先想定として記載していますが、Apache / Nginx でも同様に動作します。
+
+### IIS (Windows)
+
+1. **IIS に CGI 機能を追加**
+   - 「Windows の機能の有効化または無効化」から **インターネット インフォメーション サービス > アプリケーション開発機能 > CGI** を有効化
+2. **サイトの物理パスに本リポジトリを配置**
+   - 例: `C:\inetpub\wwwroot\manual_factory`
+3. **ハンドラーマッピングの追加**
+   - IIS マネージャー > 対象サイト > 「ハンドラーマッピング」 > 「マップの追加」
+   - 要素:
+     - 要求パス: `*.py`
+     - 実行可能ファイル: `C:\Python39\python.exe "%s" %s`（環境に合わせて調整）
+     - 名前: `Python CGI`
+4. **アクセス確認**
+   - `http://localhost/manual_factory/login.py`
+
+### Apache (Windows/Linux)
+
+1. **CGI モジュールを有効化**
+   - `httpd.conf` の `LoadModule cgi_module modules/mod_cgi.so` を有効化
+2. **プロジェクト配下で CGI を許可**
+
+```apache
+<Directory "C:/xampp/htdocs/manual_factory">
+    Options +ExecCGI
+    AddHandler cgi-script .py
+    Require all granted
+    DirectoryIndex index.py login.py
+</Directory>
+```
+
+3. **アクセス確認**
+   - `http://localhost/manual_factory/login.py`
+
+### Nginx (Linux)
+
+Nginx は CGI を直接実行できないため、**fcgiwrap** を使用します。
+
+1. **fcgiwrap の導入**
+   - `sudo apt install fcgiwrap` など
+2. **Nginx 設定例**
+
+```nginx
+server {
+    listen 80;
+    server_name localhost;
+    root /var/www/html/manual_factory;
+    index index.py login.py;
+
+    location ~ \.py$ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_pass unix:/var/run/fcgiwrap.socket;
+    }
+}
+```
+
+3. **実行権限付与（Linuxのみ）**
+   - `chmod +x *.py manuals/*.py users/*.py cgi-bin/api/*.py`
+
+4. **アクセス確認**
+   - `http://localhost/manual_factory/login.py`
+
 ## 手動インストール手順
 
 自動セットアップツールを使用しない場合は、以下の手順で手動セットアップできます。
@@ -96,43 +162,9 @@ python init_db.py
 mkdir C:\xampp\htdocs\manual_factory\uploads\images
 ```
 
-### 4. Apache CGI設定
+### 4. Webサーバー設定
 
-#### XAMPPの場合
-
-`C:\xampp\apache\conf\httpd.conf` を編集し、以下の設定を確認してください。
-
-```apache
-# CGIモジュールをロード（コメントアウトされていないことを確認）
-LoadModule cgi_module modules/mod_cgi.so
-
-# CGIディレクトリの設定を追加
-<Directory "C:/xampp/htdocs/manual_factory/cgi-bin">
-    Options +ExecCGI
-    AddHandler cgi-script .py
-    Require all granted
-</Directory>
-
-# Python CGIのためのハンドラー設定
-AddHandler cgi-script .py
-```
-
-または、`C:\xampp\htdocs\manual_factory` に `.htaccess` ファイルを作成：
-
-```apache
-# CGIの実行を許可
-Options +ExecCGI
-AddHandler cgi-script .py
-
-# ディレクトリインデックス
-DirectoryIndex index.html
-
-# Python CGI設定
-<Directory "cgi-bin">
-    Options +ExecCGI
-    SetHandler cgi-script
-</Directory>
-```
+上記「サーバー別インストール手順」に従って CGI を有効化してください。
 
 ### 5. Pythonパスの確認
 
@@ -155,7 +187,7 @@ XAMPPコントロールパネルからApacheを再起動します。
 ブラウザで以下のURLにアクセスします：
 
 ```
-http://localhost/manual_factory/login.html
+http://localhost/manual_factory/login.py
 ```
 
 ## セットアップツール
@@ -193,15 +225,15 @@ manual_factory/
 │   └── js/
 │       └── api.js       # API通信ライブラリ
 ├── manuals/             # 手順書関連ページ
-│   ├── view.html        # 詳細表示
-│   ├── create.html      # 作成
-│   └── edit.html        # 編集
+│   ├── view.py          # 詳細表示
+│   ├── create.py        # 作成
+│   └── edit.py          # 編集
 ├── users/
-│   └── index.html       # ユーザー管理
+│   └── index.py         # ユーザー管理
 ├── uploads/
 │   └── images/          # アップロード画像
-├── index.html           # 手順書一覧
-├── login.html           # ログイン
+├── index.py             # 手順書一覧
+├── login.py             # ログイン
 └── README.md
 ```
 
