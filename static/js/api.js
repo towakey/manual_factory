@@ -1,6 +1,7 @@
 // API通信用のユーティリティ
 
-const APP_ROOT = window.location.pathname.startsWith('/manual_factory/') ? '/manual_factory' : '';
+const path = window.location.pathname;
+const APP_ROOT = path.match(/^\/manual_factory(\/|$)/) ? '/manual_factory' : '';
 const API_BASE = `${APP_ROOT}/cgi-bin/api`;
 
 // APIリクエストを送信
