@@ -1,7 +1,26 @@
 // API通信用のユーティリティ
 
 const path = window.location.pathname;
-const APP_ROOT = path.match(/^\/manual_factory(\/|$)/) ? '/manual_factory' : '';
+
+function detectAppRoot(pathname) {
+    const patterns = [
+        /\/index\.py$/,
+        /\/login\.py$/,
+        /\/manuals\/(create|edit|view)\.py$/,
+        /\/users\/index\.py$/
+    ];
+
+    for (const pattern of patterns) {
+        if (pattern.test(pathname)) {
+            const base = pathname.replace(pattern, '');
+            return base || '';
+        }
+    }
+
+    return '';
+}
+
+const APP_ROOT = detectAppRoot(path);
 const API_BASE = `${APP_ROOT}/cgi-bin/api`;
 
 // APIリクエストを送信
