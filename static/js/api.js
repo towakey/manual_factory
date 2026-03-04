@@ -4,10 +4,10 @@ const path = window.location.pathname;
 
 function detectAppRoot(pathname) {
     const patterns = [
+        /\/users\/index\.py$/,
+        /\/manuals\/(create|edit|view)\.py$/,
         /\/index\.py$/,
         /\/login\.py$/,
-        /\/manuals\/(create|edit|view)\.py$/,
-        /\/users\/index\.py$/
     ];
 
     for (const pattern of patterns) {
