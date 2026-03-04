@@ -35,11 +35,7 @@ HTML = """<!DOCTYPE html>
     <header>
         <div class="container">
             <h1>手順書管理システム</h1>
-            <nav>
-                <a href="../index.py">手順書一覧</a>
-                <span id="userName"></span>
-                <button id="logoutBtn">ログアウト</button>
-            </nav>
+            <nav id="globalNav"></nav>
         </div>
     </header>
 
@@ -97,7 +93,14 @@ HTML = """<!DOCTYPE html>
             currentUser = await checkAuth();
             if (!currentUser) return;
 
-            document.getElementById('userName').textContent = currentUser.name;
+            const nav = document.getElementById('globalNav');
+            nav.innerHTML = renderGlobalNav(currentUser, {
+                home: '../index.py',
+                create: '../manuals/create.py',
+                users: '../users/index.py',
+                login: '../login.py'
+            });
+            attachLogoutHandler('../login.py');
 
             // 初期ステップを追加
             addStep();
@@ -135,6 +138,10 @@ HTML = """<!DOCTYPE html>
                 <div class="form-group">
                     <label>画像</label>
                     <input type="file" class="step-image" accept="image/*">
+                    <small style="display: block; color: #666; margin-top: 0.25rem;">または下の欄をクリックして、クリップボードの画像を貼り付け</small>
+                    <div class="step-image-paste-area" tabindex="0" style="margin-top: 0.5rem; padding: 0.75rem; border: 1px dashed #999; border-radius: 4px; color: #666; background: #fafafa;">
+                        ここに画像を貼り付け（Ctrl+V / Cmd+V）
+                    </div>
                     <div class="step-image-preview" style="margin-top: 0.5rem;"></div>
                 </div>
             `;
@@ -144,15 +151,45 @@ HTML = """<!DOCTYPE html>
             // 画像アップロードのプレビュー
             const imageInput = stepDiv.querySelector('.step-image');
             const imagePreview = stepDiv.querySelector('.step-image-preview');
+            const pasteArea = stepDiv.querySelector('.step-image-paste-area');
+
+            function updateImagePreview(file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.innerHTML = `<img src="${e.target.result}" style="max-width: 300px; border-radius: 4px;">`;
+                };
+                reader.readAsDataURL(file);
+            }
 
             imageInput.addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        imagePreview.innerHTML = `<img src="${e.target.result}" style="max-width: 300px; border-radius: 4px;">`;
-                    };
-                    reader.readAsDataURL(file);
+                    stepDiv.pastedImageFile = null;
+                    updateImagePreview(file);
+                }
+            });
+
+            pasteArea.addEventListener('paste', function(e) {
+                const items = e.clipboardData && e.clipboardData.items;
+                if (!items) {
+                    return;
+                }
+
+                for (const item of items) {
+                    if (item.type.startsWith('image/')) {
+                        const blob = item.getAsFile();
+                        if (!blob) {
+                            continue;
+                        }
+
+                        const pastedFile = new File([blob], `pasted_${Date.now()}.png`, { type: blob.type || 'image/png' });
+                        stepDiv.pastedImageFile = pastedFile;
+                        imageInput.value = '';
+                        updateImagePreview(pastedFile);
+                        e.preventDefault();
+                        showAlert('画像を貼り付けました', 'success');
+                        return;
+                    }
                 }
             });
         }
@@ -194,9 +231,11 @@ HTML = """<!DOCTYPE html>
 
                     let imagePath = '';
 
+                    const uploadFile = stepImageInput.files[0] || stepDiv.pastedImageFile;
+
                     // 画像がある場合はアップロード
-                    if (stepImageInput.files.length > 0) {
-                        const imageData = await ManualAPI.uploadImage(stepImageInput.files[0]);
+                    if (uploadFile) {
+                        const imageData = await ManualAPI.uploadImage(uploadFile);
                         imagePath = imageData.path;
                     }
 
@@ -234,15 +273,6 @@ HTML = """<!DOCTYPE html>
 
         // イベントリスナー
         document.getElementById('addStepBtn').addEventListener('click', addStep);
-
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-            try {
-                await AuthAPI.logout();
-                window.location.href = '../login.py';
-            } catch (error) {
-                handleError(error);
-            }
-        });
 
         // 初期化実行
         init();

@@ -35,12 +35,7 @@ HTML = """<!DOCTYPE html>
     <header>
         <div class="container">
             <h1>手順書管理システム</h1>
-            <nav>
-                <a href="../index.py">手順書一覧</a>
-                <a href="../users/index.py">ユーザー管理</a>
-                <span id="userName"></span>
-                <button id="logoutBtn">ログアウト</button>
-            </nav>
+            <nav id="globalNav"></nav>
         </div>
     </header>
 
@@ -133,7 +128,14 @@ HTML = """<!DOCTYPE html>
                 return;
             }
 
-            document.getElementById('userName').textContent = currentUser.name;
+            const nav = document.getElementById('globalNav');
+            nav.innerHTML = renderGlobalNav(currentUser, {
+                home: '../index.py',
+                create: '../manuals/create.py',
+                users: '../users/index.py',
+                login: '../login.py'
+            });
+            attachLogoutHandler('../login.py');
             loadUsers();
         }
 
@@ -355,15 +357,6 @@ HTML = """<!DOCTYPE html>
             if (e.key === 'Enter') {
                 currentPage = 1;
                 loadUsers();
-            }
-        });
-
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-            try {
-                await AuthAPI.logout();
-                window.location.href = '../login.py';
-            } catch (error) {
-                handleError(error);
             }
         });
 

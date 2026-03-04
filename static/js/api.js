@@ -156,6 +156,53 @@ const ManualAPI = {
     }
 };
 
+
+
+function renderGlobalNav(currentUser, links = {}) {
+    const {
+        home = `${APP_ROOT}/index.py`,
+        create = `${APP_ROOT}/manuals/create.py`,
+        users = `${APP_ROOT}/users/index.py`,
+        login = `${APP_ROOT}/login.py`
+    } = links;
+
+    let html = `<a href="${home}">手順書一覧</a>`;
+
+    if (currentUser) {
+        html += ` <a href="${create}">新規作成</a>`;
+        if (currentUser.role === 'admin') {
+            html += ` <a href="${users}">ユーザー管理</a>`;
+        }
+        html += ` <span id="userName">${escapeHtml(currentUser.name)}</span>`;
+        html += ' <button id="logoutBtn">ログアウト</button>';
+    } else {
+        html += ` <a href="${login}">ログイン</a>`;
+    }
+
+    return html;
+}
+
+function attachLogoutHandler(redirectPath) {
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (!logoutBtn) {
+        return;
+    }
+
+    logoutBtn.addEventListener('click', async () => {
+        try {
+            await AuthAPI.logout();
+            window.location.href = redirectPath;
+        } catch (error) {
+            handleError(error);
+        }
+    });
+}
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+}
+
 // アラート表示
 function showAlert(message, type = 'info') {
     const alertDiv = document.createElement('div');

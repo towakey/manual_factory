@@ -35,12 +35,7 @@ HTML = """<!DOCTYPE html>
     <header>
         <div class="container">
             <h1>手順書管理システム</h1>
-            <nav>
-                <a href="../index.py">手順書一覧</a>
-                <a href="../manuals/create.py" class="btn btn-success">新規作成</a>
-                <span id="userName"></span>
-                <button id="logoutBtn">ログアウト</button>
-            </nav>
+            <nav id="globalNav"></nav>
         </div>
     </header>
 
@@ -59,11 +54,14 @@ HTML = """<!DOCTYPE html>
         async function init() {
             currentUser = await checkAuth({ redirectOnUnauthorized: false });
 
-            if (currentUser) {
-                document.getElementById('userName').textContent = currentUser.name;
-            } else {
-                document.getElementById('logoutBtn').style.display = 'none';
-            }
+            const nav = document.getElementById('globalNav');
+            nav.innerHTML = renderGlobalNav(currentUser, {
+                home: '../index.py',
+                create: '../manuals/create.py',
+                users: '../users/index.py',
+                login: '../login.py'
+            });
+            attachLogoutHandler('../login.py');
 
             // URLパラメータから手順書IDを取得
             const params = new URLSearchParams(window.location.search);
@@ -211,16 +209,7 @@ HTML = """<!DOCTYPE html>
             const date = new Date(dateString);
             return date.toLocaleString('ja-JP');
         }
-
         // イベントリスナー
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-            try {
-                await AuthAPI.logout();
-                window.location.href = '../login.py';
-            } catch (error) {
-                handleError(error);
-            }
-        });
 
         // 初期化実行
         init();
