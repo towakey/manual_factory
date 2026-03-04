@@ -190,7 +190,7 @@ HTML = """<!DOCTYPE html>
 
                 <div class="form-group">
                     <label>画像</label>
-                    ${stepData && stepData.image_path ? `<div><img src="${stepData.image_path}" style="max-width: 300px; margin-bottom: 0.5rem; border-radius: 4px;"></div>` : ''}
+                    <div class="step-existing-image-container"></div>
                     <input type="file" class="step-image" accept="image/*">
                     <small style="display: block; color: #666; margin-top: 0.25rem;">または下の欄をクリックして、クリップボードの画像を貼り付け</small>
                     <div class="step-image-paste-area" tabindex="0" style="margin-top: 0.5rem; padding: 0.75rem; border: 1px dashed #999; border-radius: 4px; color: #666; background: #fafafa;">
@@ -202,6 +202,22 @@ HTML = """<!DOCTYPE html>
             `;
 
             container.appendChild(stepDiv);
+
+            // 既存画像を表示
+            const existingImageContainer = stepDiv.querySelector('.step-existing-image-container');
+            const existingImageInput = stepDiv.querySelector('.step-existing-image');
+            if (stepData && stepData.image_path) {
+                // パスを補正（/で始まる場合はアプリケーションルートからのパスとして扱う）
+                let imagePath = stepData.image_path;
+                if (imagePath.startsWith('/uploads/')) {
+                    // 現在のパスからアプリケーションルートを特定
+                    const currentPath = window.location.pathname;
+                    const appRootMatch = currentPath.match(/^(\/[^\/]+)/);
+                    const appRoot = appRootMatch ? appRootMatch[1] : '';
+                    imagePath = appRoot + imagePath;
+                }
+                existingImageContainer.innerHTML = `<img src="${imagePath}" style="max-width: 300px; margin-bottom: 0.5rem; border-radius: 4px;">`;
+            }
 
             // 画像アップロードのプレビュー
             const imageInput = stepDiv.querySelector('.step-image');

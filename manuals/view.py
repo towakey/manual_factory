@@ -142,7 +142,16 @@ HTML = """<!DOCTYPE html>
                     }
 
                     if (step.image_path) {
-                        html += `<img src="${step.image_path}" alt="${escapeHtml(step.title)}">`;
+                        // パスを補正（/で始まる場合はアプリケーションルートからのパスとして扱う）
+                        let imagePath = step.image_path;
+                        if (imagePath.startsWith('/uploads/')) {
+                            // 現在のパスからアプリケーションルートを特定
+                            const currentPath = window.location.pathname;
+                            const appRootMatch = currentPath.match(/^(\/[^\/]+)/);
+                            const appRoot = appRootMatch ? appRootMatch[1] : '';
+                            imagePath = appRoot + imagePath;
+                        }
+                        html += `<img src="${imagePath}" alt="${escapeHtml(step.title)}">`;
                     }
 
                     if (step.note) {
