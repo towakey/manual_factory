@@ -35,13 +35,7 @@ HTML = """<!DOCTYPE html>
     <header>
         <div class="container">
             <h1>手順書管理システム</h1>
-            <nav id="nav">
-                <a href="./index.py">手順書一覧</a>
-                <a href="./manuals/create.py" class="btn btn-success">新規作成</a>
-                <a href="./users/index.py" id="usersLink" style="display: none;">ユーザー管理</a>
-                <span id="userName"></span>
-                <button id="logoutBtn">ログアウト</button>
-            </nav>
+            <nav id="globalNav"></nav>
         </div>
     </header>
 
@@ -77,16 +71,14 @@ HTML = """<!DOCTYPE html>
         async function init() {
             currentUser = await checkAuth({ redirectOnUnauthorized: false });
 
-            if (currentUser) {
-                document.getElementById('userName').textContent = currentUser.name;
-
-                // 管理者の場合はユーザー管理リンクを表示
-                if (currentUser.role === 'admin') {
-                    document.getElementById('usersLink').style.display = 'block';
-                }
-            } else {
-                document.getElementById('logoutBtn').style.display = 'none';
-            }
+            const nav = document.getElementById('globalNav');
+            nav.innerHTML = renderGlobalNav(currentUser, {
+                home: './index.py',
+                create: './manuals/create.py',
+                users: './users/index.py',
+                login: './login.py'
+            });
+            attachLogoutHandler('./login.py');
 
             loadManuals();
         }
@@ -231,15 +223,6 @@ HTML = """<!DOCTYPE html>
         document.getElementById('statusFilter').addEventListener('change', () => {
             currentPage = 1;
             loadManuals();
-        });
-
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-            try {
-                await AuthAPI.logout();
-                window.location.href = './login.py';
-            } catch (error) {
-                handleError(error);
-            }
         });
 
         // 初期化実行
