@@ -21,9 +21,6 @@ def get_manual():
         session_id = get_cookie_value('session_id')
         current_user = get_session_user(session_id)
         
-        if not current_user:
-            return json_response({'error': '認証が必要です'}, status=401)
-        
         # パラメータ取得
         params = get_query_params()
         manual_id = params.get('id')
@@ -52,7 +49,7 @@ def get_manual():
             manual = dict(row)
             
             # 下書きは作成者のみ閲覧可能
-            if manual['is_published'] == 0 and manual['author_id'] != current_user['id']:
+            if manual['is_published'] == 0 and (not current_user or manual['author_id'] != current_user['id']):
                 return json_response({'error': '閲覧権限がありません'}, status=403)
             
             # タグを取得
@@ -88,7 +85,7 @@ def get_manual():
             cursor.execute('''
                 INSERT INTO view_logs (manual_id, user_id)
                 VALUES (?, ?)
-            ''', (manual_id, current_user['id']))
+            ''', (manual_id, current_user['id'] if current_user else None))
             
             conn.commit()
         

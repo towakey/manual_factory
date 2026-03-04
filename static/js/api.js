@@ -180,15 +180,19 @@ function handleError(error) {
 }
 
 // 認証チェック
-async function checkAuth() {
+async function checkAuth(options = {}) {
+    const { redirectOnUnauthorized = true } = options;
+
     try {
         const data = await AuthAPI.getCurrentUser();
         return data.user;
     } catch (error) {
-        // 認証エラーの場合はログインページにリダイレクト
-        const loginPath = `${APP_ROOT}/login.py`;
-        if (window.location.pathname !== loginPath) {
-            window.location.href = loginPath;
+        if (redirectOnUnauthorized) {
+            // 認証エラーの場合はログインページにリダイレクト
+            const loginPath = `${APP_ROOT}/login.py`;
+            if (window.location.pathname !== loginPath) {
+                window.location.href = loginPath;
+            }
         }
         return null;
     }

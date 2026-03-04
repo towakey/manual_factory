@@ -75,14 +75,17 @@ HTML = """<!DOCTYPE html>
 
         // 初期化
         async function init() {
-            currentUser = await checkAuth();
-            if (!currentUser) return;
+            currentUser = await checkAuth({ redirectOnUnauthorized: false });
 
-            document.getElementById('userName').textContent = currentUser.name;
+            if (currentUser) {
+                document.getElementById('userName').textContent = currentUser.name;
 
-            // 管理者の場合はユーザー管理リンクを表示
-            if (currentUser.role === 'admin') {
-                document.getElementById('usersLink').style.display = 'block';
+                // 管理者の場合はユーザー管理リンクを表示
+                if (currentUser.role === 'admin') {
+                    document.getElementById('usersLink').style.display = 'block';
+                }
+            } else {
+                document.getElementById('logoutBtn').style.display = 'none';
             }
 
             loadManuals();
@@ -138,7 +141,7 @@ HTML = """<!DOCTYPE html>
                 html += '<td>';
 
                 // 作成者または管理者のみ編集・削除可能
-                if (manual.author_id === currentUser.id || currentUser.role === 'admin') {
+                if (currentUser && (manual.author_id === currentUser.id || currentUser.role === 'admin')) {
                     html += `<a href="./manuals/edit.py?id=${manual.id}" class="btn btn-secondary" style="padding: 0.5rem 1rem; margin-right: 0.5rem;">編集</a>`;
                     html += `<button onclick="deleteManual(${manual.id})" class="btn btn-danger" style="padding: 0.5rem 1rem;">削除</button>`;
                 }
