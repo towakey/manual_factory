@@ -209,6 +209,43 @@ HTML = """<!DOCTYPE html>
             const submitter = e.submitter;
             const action = submitter.value;
 
+            // ローディング表示
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.id = 'loadingOverlay';
+            loadingOverlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+            `;
+            loadingOverlay.innerHTML = `
+                <div style="background: white; padding: 2rem; border-radius: 8px; text-align: center;">
+                    <div style="margin-bottom: 1rem;">
+                        <svg style="animation: spin 1s linear infinite; width: 50px; height: 50px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" stroke="#3b82f6" stroke-width="4" stroke-linecap="round" stroke-dasharray="31.416" stroke-dashoffset="31.416"></circle>
+                        </svg>
+                    </div>
+                    <p style="margin: 0; font-size: 1.1rem; color: #333;">${action === 'publish' ? '公開中...' : '保存中...'}</p>
+                </div>
+                <style>
+                    @keyframes spin {
+                        from { transform: rotate(0deg); }
+                        to { transform: rotate(360deg); }
+                    }
+                </style>
+            `;
+            document.body.appendChild(loadingOverlay);
+
+            // ボタンを無効化
+            const buttons = document.querySelectorAll('button[type="submit"], button[type="button"]');
+            buttons.forEach(btn => btn.disabled = true);
+
             try {
                 // 基本情報を取得
                 const title = document.getElementById('title').value;
@@ -267,6 +304,10 @@ HTML = """<!DOCTYPE html>
                 }, 1000);
 
             } catch (error) {
+                // エラー時はローディングを削除してボタンを再有効化
+                const overlay = document.getElementById('loadingOverlay');
+                if (overlay) overlay.remove();
+                buttons.forEach(btn => btn.disabled = false);
                 handleError(error);
             }
         });
