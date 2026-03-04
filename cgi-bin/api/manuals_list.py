@@ -21,8 +21,7 @@ def get_manuals():
         session_id = get_cookie_value('session_id')
         current_user = get_session_user(session_id)
         
-        if not current_user:
-            return json_response({'error': '認証が必要です'}, status=401)
+        is_guest = current_user is None
         
         # クエリパラメータ取得
         params = get_query_params()
@@ -49,9 +48,15 @@ def get_manuals():
             if is_published == '1':
                 where_conditions.append('m.is_published = 1')
             elif is_published == '0':
-                # 下書きは作成者本人のみ閲覧可能
-                where_conditions.append('(m.is_published = 0 AND m.author_id = ?)')
-                query_params.append(current_user['id'])
+                # 下書きはログインユーザー本人のみ閲覧可能
+                if is_guest:
+                    where_conditions.append('1 = 0')
+                else:
+                    where_conditions.append('(m.is_published = 0 AND m.author_id = ?)')
+                    query_params.append(current_user['id'])
+            elif is_guest:
+                # 未ログインユーザーは公開手順書のみ閲覧可能
+                where_conditions.append('m.is_published = 1')
             
             # 検索キーワード
             if search:

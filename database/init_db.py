@@ -42,20 +42,34 @@ def init_database():
     admin_email = 'admin@example.com'
     admin_password = 'admin123'  # 本番環境では必ず変更してください
     admin_name = '管理者'
-    
+
     cursor.execute('''
         INSERT INTO users (email, password_hash, name, role, department)
         VALUES (?, ?, ?, 'admin', 'システム管理部')
     ''', (admin_email, hash_password(admin_password), admin_name))
-    
+
+    # 初期ゲストユーザーを作成
+    guest_email = 'guest@example.com'
+    guest_password = 'guest123'  # 本番環境では必ず変更してください
+    guest_name = 'ゲスト'
+
+    cursor.execute('''
+        INSERT INTO users (email, password_hash, name, role, department)
+        VALUES (?, ?, ?, 'user', 'ゲスト')
+    ''', (guest_email, hash_password(guest_password), guest_name))
+
     conn.commit()
     conn.close()
-    
+
     print('データベースの初期化が完了しました。')
     print(f'データベースパス: {DB_PATH}')
-    print(f'初期管理者アカウント:')
-    print(f'  Email: {admin_email}')
-    print(f'  Password: {admin_password}')
+    print('初期アカウント:')
+    print('  [管理者]')
+    print(f'    Email: {admin_email}')
+    print(f'    Password: {admin_password}')
+    print('  [ゲスト]')
+    print(f'    Email: {guest_email}')
+    print(f'    Password: {guest_password}')
     print('※パスワードは必ず変更してください。')
 
 if __name__ == '__main__':

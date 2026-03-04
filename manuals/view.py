@@ -57,10 +57,13 @@ HTML = """<!DOCTYPE html>
 
         // 初期化
         async function init() {
-            currentUser = await checkAuth();
-            if (!currentUser) return;
+            currentUser = await checkAuth({ redirectOnUnauthorized: false });
 
-            document.getElementById('userName').textContent = currentUser.name;
+            if (currentUser) {
+                document.getElementById('userName').textContent = currentUser.name;
+            } else {
+                document.getElementById('logoutBtn').style.display = 'none';
+            }
 
             // URLパラメータから手順書IDを取得
             const params = new URLSearchParams(window.location.search);
@@ -98,7 +101,7 @@ HTML = """<!DOCTYPE html>
             html += `</div>`;
 
             // 編集・削除ボタン
-            if (manual.author_id === currentUser.id || currentUser.role === 'admin') {
+            if (currentUser && (manual.author_id === currentUser.id || currentUser.role === 'admin')) {
                 html += '<div>';
                 html += `<a href="../manuals/edit.py?id=${manual.id}" class="btn btn-primary">編集</a> `;
                 html += `<button onclick="deleteManual(${manual.id})" class="btn btn-danger">削除</button>`;
