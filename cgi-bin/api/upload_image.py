@@ -87,13 +87,18 @@ def upload_image():
         # リクエストパスからアプリケーションルートを特定
         import os as os_module
         script_name = os_module.environ.get('SCRIPT_NAME', '')
-        # /cgi-bin/api/upload_image.py のようなパスから /manual_factory を抽出
+        # /test/manual_factory/cgi-bin/api/upload_image.py のようなパスから
+        # /test/manual_factory を抽出する
+        script_suffix = '/cgi-bin/api/upload_image.py'
         app_root = ''
-        if script_name:
-            parts = script_name.split('/')
-            if len(parts) > 1:
-                # 最初の / と次のセグメントをアプリケーションルートとする
-                app_root = '/' + parts[1]
+        if script_name.endswith(script_suffix):
+            app_root = script_name[:-len(script_suffix)]
+        elif script_name.startswith('/cgi-bin/'):
+            # ルート配置時のフォールバック
+            app_root = ''
+        elif script_name:
+            # 想定外の配置でも upload_image.py までを除去してベースパスを使う
+            app_root = script_name.rsplit('/cgi-bin/', 1)[0]
 
         relative_path = f'{app_root}/uploads/images/{unique_filename}'
         
