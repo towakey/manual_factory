@@ -159,18 +159,19 @@ HTML = """<!DOCTYPE html>
             }
         }
 
-        // ステップを追加
-        function addStep(stepData = null) {
+        function createStepElement(stepData = null) {
             stepCounter++;
-            const container = document.getElementById('stepsContainer');
-
             const stepDiv = document.createElement('div');
             stepDiv.className = 'step-item';
             stepDiv.id = `step-${stepCounter}`;
             stepDiv.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                    <h3>ステップ ${stepCounter}</h3>
+                    <h3 class="step-heading">ステップ</h3>
                     <button type="button" class="btn btn-danger" onclick="removeStep('step-${stepCounter}')" style="padding: 0.25rem 0.75rem;">削除</button>
+                </div>
+
+                <div style="margin-bottom: 0.75rem;">
+                    <button type="button" class="btn btn-secondary" onclick="insertStepAfter('step-${stepCounter}')" style="padding: 0.25rem 0.75rem;">この下にステップを追加</button>
                 </div>
 
                 <div class="form-group">
@@ -201,14 +202,24 @@ HTML = """<!DOCTYPE html>
                 </div>
             `;
 
-            container.appendChild(stepDiv);
-
             // 既存画像を表示
             const existingImageContainer = stepDiv.querySelector('.step-existing-image-container');
             const existingImageInput = stepDiv.querySelector('.step-existing-image');
             if (stepData && stepData.image_path) {
                 const imagePath = resolveAppAssetPath(stepData.image_path);
-                existingImageContainer.innerHTML = `<img src="${imagePath}" style="max-width: 300px; margin-bottom: 0.5rem; border-radius: 4px;">`;
+                existingImageContainer.innerHTML = `
+                    <div style="position: relative; display: inline-block; margin-bottom: 0.5rem;">
+                        <img src="${imagePath}" style="max-width: 300px; border-radius: 4px;">
+                        <button type="button" class="btn btn-danger remove-existing-image-btn" style="position: absolute; top: 0.25rem; right: 0.25rem; width: 1.8rem; height: 1.8rem; padding: 0; line-height: 1; border-radius: 999px;">×</button>
+                    </div>
+                `;
+
+                const removeExistingImageBtn = existingImageContainer.querySelector('.remove-existing-image-btn');
+                removeExistingImageBtn.addEventListener('click', function() {
+                    existingImageInput.value = '';
+                    existingImageContainer.innerHTML = '';
+                    showAlert('既存画像を削除しました', 'success');
+                });
             }
 
             // 画像アップロードのプレビュー
@@ -219,7 +230,20 @@ HTML = """<!DOCTYPE html>
             function updateImagePreview(file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    imagePreview.innerHTML = `<img src="${e.target.result}" style="max-width: 300px; border-radius: 4px;">`;
+                    imagePreview.innerHTML = `
+                        <div style="position: relative; display: inline-block;">
+                            <img src="${e.target.result}" style="max-width: 300px; border-radius: 4px;">
+                            <button type="button" class="btn btn-danger remove-preview-image-btn" style="position: absolute; top: 0.25rem; right: 0.25rem; width: 1.8rem; height: 1.8rem; padding: 0; line-height: 1; border-radius: 999px;">×</button>
+                        </div>
+                    `;
+
+                    const removePreviewImageBtn = imagePreview.querySelector('.remove-preview-image-btn');
+                    removePreviewImageBtn.addEventListener('click', function() {
+                        imagePreview.innerHTML = '';
+                        imageInput.value = '';
+                        stepDiv.pastedImageFile = null;
+                        showAlert('選択中の画像を削除しました', 'success');
+                    });
                 };
                 reader.readAsDataURL(file);
             }
@@ -255,6 +279,39 @@ HTML = """<!DOCTYPE html>
                     }
                 }
             });
+
+            return stepDiv;
+        }
+
+        // ステップ番号を振り直し
+        function renumberSteps() {
+            const stepDivs = document.querySelectorAll('#stepsContainer .step-item');
+            stepDivs.forEach((stepDiv, index) => {
+                const heading = stepDiv.querySelector('.step-heading');
+                if (heading) {
+                    heading.textContent = `ステップ ${index + 1}`;
+                }
+            });
+        }
+
+        // ステップを追加
+        function addStep(stepData = null) {
+            const container = document.getElementById('stepsContainer');
+            const stepDiv = createStepElement(stepData);
+            container.appendChild(stepDiv);
+            renumberSteps();
+        }
+
+        // 指定ステップの下にステップを追加
+        function insertStepAfter(stepId) {
+            const currentStep = document.getElementById(stepId);
+            if (!currentStep) {
+                return;
+            }
+
+            const stepDiv = createStepElement();
+            currentStep.insertAdjacentElement('afterend', stepDiv);
+            renumberSteps();
         }
 
         // ステップを削除
@@ -262,6 +319,7 @@ HTML = """<!DOCTYPE html>
             const stepDiv = document.getElementById(stepId);
             if (stepDiv) {
                 stepDiv.remove();
+                renumberSteps();
             }
         }
 
