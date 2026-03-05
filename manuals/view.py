@@ -30,6 +30,33 @@ HTML = """<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>手順書詳細 - 手順書管理システム</title>
     <link rel="stylesheet" href="../static/css/style.css">
+    <style>
+        @media print {
+            header,
+            .manual-actions,
+            .loading,
+            .alert {
+                display: none !important;
+            }
+
+            body {
+                background: #fff;
+            }
+
+            .container,
+            .card {
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+                border: none;
+                max-width: 100%;
+            }
+
+            .step-item {
+                break-inside: avoid;
+            }
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -98,13 +125,14 @@ HTML = """<!DOCTYPE html>
             html += `<p style="color: #666;">作成者: ${escapeHtml(manual.author_name)} | 更新日時: ${formatDate(manual.updated_at)}</p>`;
             html += `</div>`;
 
-            // 編集・削除ボタン
+            // 操作ボタン
+            html += '<div class="manual-actions">';
+            html += `<button onclick="exportManualPdf()" class="btn btn-secondary">PDF出力</button> `;
             if (currentUser && (manual.author_id === currentUser.id || currentUser.role === 'admin')) {
-                html += '<div>';
                 html += `<a href="../manuals/edit.py?id=${manual.id}" class="btn btn-primary">編集</a> `;
                 html += `<button onclick="deleteManual(${manual.id})" class="btn btn-danger">削除</button>`;
-                html += '</div>';
             }
+            html += '</div>';
 
             html += '</div>';
 
@@ -181,6 +209,17 @@ HTML = """<!DOCTYPE html>
             }
 
             container.innerHTML = html;
+        }
+
+        // PDF出力
+        function exportManualPdf() {
+            const titleElement = document.querySelector('#manualContainer .card .card-title');
+            const originalTitle = document.title;
+            if (titleElement) {
+                document.title = `${titleElement.textContent} - 手順書`;
+            }
+            window.print();
+            document.title = originalTitle;
         }
 
         // 手順書削除
