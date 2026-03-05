@@ -76,10 +76,14 @@ def get_request_data():
     try:
         content_length = int(os.environ.get('CONTENT_LENGTH', 0))
         if content_length > 0:
-            request_body = sys.stdin.read(content_length)
+            if hasattr(sys.stdin, 'buffer'):
+                request_bytes = sys.stdin.buffer.read(content_length)
+                request_body = request_bytes.decode('utf-8')
+            else:
+                request_body = sys.stdin.read(content_length)
             return json.loads(request_body)
         return {}
-    except (ValueError, json.JSONDecodeError):
+    except (UnicodeDecodeError, ValueError, json.JSONDecodeError):
         return {}
 
 def get_query_params():
