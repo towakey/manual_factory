@@ -60,8 +60,19 @@ def get_manuals():
             
             # 検索キーワード
             if search:
-                where_conditions.append('(m.title LIKE ? OR m.description LIKE ?)')
                 search_pattern = f'%{search}%'
+                where_conditions.append('''
+                    (
+                        m.title LIKE ?
+                        OR EXISTS (
+                            SELECT 1
+                            FROM manual_tags mt_search
+                            JOIN tags t_search ON mt_search.tag_id = t_search.id
+                            WHERE mt_search.manual_id = m.id
+                              AND t_search.name LIKE ?
+                        )
+                    )
+                ''')
                 query_params.extend([search_pattern, search_pattern])
             
             # 作成者フィルタ
