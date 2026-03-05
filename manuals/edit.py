@@ -207,15 +207,7 @@ HTML = """<!DOCTYPE html>
             const existingImageContainer = stepDiv.querySelector('.step-existing-image-container');
             const existingImageInput = stepDiv.querySelector('.step-existing-image');
             if (stepData && stepData.image_path) {
-                // パスを補正（/で始まる場合はアプリケーションルートからのパスとして扱う）
-                let imagePath = stepData.image_path;
-                if (imagePath.startsWith('/uploads/')) {
-                    // 現在のパスからアプリケーションルートを特定
-                    const currentPath = window.location.pathname;
-                    const appRootMatch = currentPath.match(/^(\/[^\/]+)/);
-                    const appRoot = appRootMatch ? appRootMatch[1] : '';
-                    imagePath = appRoot + imagePath;
-                }
+                const imagePath = resolveAppAssetPath(stepData.image_path);
                 existingImageContainer.innerHTML = `<img src="${imagePath}" style="max-width: 300px; margin-bottom: 0.5rem; border-radius: 4px;">`;
             }
 

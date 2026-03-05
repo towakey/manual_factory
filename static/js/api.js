@@ -20,6 +20,18 @@ function detectAppRoot(pathname) {
     return '';
 }
 
+function resolveAppAssetPath(assetPath) {
+    if (!assetPath || typeof assetPath !== 'string') {
+        return assetPath;
+    }
+
+    if (assetPath.startsWith('/uploads/')) {
+        return `${APP_ROOT}${assetPath}`;
+    }
+
+    return assetPath;
+}
+
 const APP_ROOT = detectAppRoot(path);
 const API_BASE = `${APP_ROOT}/cgi-bin/api`;
 
