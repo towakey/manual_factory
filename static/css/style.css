@@ -352,6 +352,7 @@ table tr:hover {
 
 .step-item img {
     max-width: 100%;
+    max-height: 80vh;
     height: auto;
     margin-top: 0.5rem;
     border-radius: 4px;
