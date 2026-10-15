@@ -86,6 +86,7 @@ HTML = """<!DOCTYPE html>
     </div>
 
     <script src="../static/js/api.js"></script>
+    <script src="../static/js/image_annotate.js"></script>
     <script>
         let currentUser = null;
         let manualId = null;
@@ -212,7 +213,22 @@ HTML = """<!DOCTYPE html>
                         <img src="${imagePath}" style="max-width: 300px; border-radius: 4px;">
                         <button type="button" class="btn btn-danger remove-existing-image-btn" style="position: absolute; top: 0.25rem; right: 0.25rem; width: 1.8rem; height: 1.8rem; padding: 0; line-height: 1; border-radius: 999px;">×</button>
                     </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary annotate-existing-image-btn" style="padding: 0.25rem 0.75rem;">図形で囲む</button>
+                    </div>
                 `;
+
+                const annotateExistingImageBtn = existingImageContainer.querySelector('.annotate-existing-image-btn');
+                annotateExistingImageBtn.addEventListener('click', function() {
+                    openImageAnnotator(imagePath, function(annotatedFile) {
+                        existingImageInput.value = '';
+                        existingImageContainer.innerHTML = '';
+                        stepDiv.pastedImageFile = annotatedFile;
+                        imageInput.value = '';
+                        updateImagePreview(annotatedFile);
+                        showAlert('図形を描き込みました', 'success');
+                    });
+                });
 
                 const removeExistingImageBtn = existingImageContainer.querySelector('.remove-existing-image-btn');
                 removeExistingImageBtn.addEventListener('click', function() {
@@ -235,7 +251,20 @@ HTML = """<!DOCTYPE html>
                             <img src="${e.target.result}" style="max-width: 300px; border-radius: 4px;">
                             <button type="button" class="btn btn-danger remove-preview-image-btn" style="position: absolute; top: 0.25rem; right: 0.25rem; width: 1.8rem; height: 1.8rem; padding: 0; line-height: 1; border-radius: 999px;">×</button>
                         </div>
+                        <div>
+                            <button type="button" class="btn btn-secondary annotate-image-btn" style="margin-top: 0.5rem; padding: 0.25rem 0.75rem;">図形で囲む</button>
+                        </div>
                     `;
+
+                    const annotateImageBtn = imagePreview.querySelector('.annotate-image-btn');
+                    annotateImageBtn.addEventListener('click', function() {
+                        openImageAnnotator(file, function(annotatedFile) {
+                            stepDiv.pastedImageFile = annotatedFile;
+                            imageInput.value = '';
+                            updateImagePreview(annotatedFile);
+                            showAlert('図形を描き込みました', 'success');
+                        });
+                    });
 
                     const removePreviewImageBtn = imagePreview.querySelector('.remove-preview-image-btn');
                     removePreviewImageBtn.addEventListener('click', function() {
