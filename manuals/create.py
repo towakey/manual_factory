@@ -84,6 +84,7 @@ HTML = """<!DOCTYPE html>
     </div>
 
     <script src="../static/js/api.js"></script>
+    <script src="../static/js/image_annotate.js"></script>
     <script>
         let currentUser = null;
         let stepCounter = 0;
@@ -156,7 +157,18 @@ HTML = """<!DOCTYPE html>
             function updateImagePreview(file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    imagePreview.innerHTML = `<img src="${e.target.result}" style="max-width: 300px; border-radius: 4px;">`;
+                    imagePreview.innerHTML = `
+                        <img src="${e.target.result}" style="max-width: 300px; border-radius: 4px; display: block;">
+                        <button type="button" class="btn btn-secondary annotate-image-btn" style="margin-top: 0.5rem; padding: 0.25rem 0.75rem;">図形で囲む</button>
+                    `;
+                    imagePreview.querySelector('.annotate-image-btn').addEventListener('click', function() {
+                        openImageAnnotator(file, function(annotatedFile) {
+                            stepDiv.pastedImageFile = annotatedFile;
+                            imageInput.value = '';
+                            updateImagePreview(annotatedFile);
+                            showAlert('図形を描き込みました', 'success');
+                        });
+                    });
                 };
                 reader.readAsDataURL(file);
             }
